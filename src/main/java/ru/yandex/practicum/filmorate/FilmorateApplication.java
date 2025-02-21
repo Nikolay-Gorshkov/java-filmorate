@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Главный класс приложения Filmorate, запускающий Spring Boot приложение.
  */
 @SpringBootApplication
-public final class FilmorateApplication {
+public class FilmorateApplication {
 	/**
 	 * Приватный конструктор для предотвращения создания экземпляров утилитарного класса.
 	 */
