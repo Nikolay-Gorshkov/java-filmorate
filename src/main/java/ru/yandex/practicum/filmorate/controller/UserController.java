@@ -83,4 +83,5 @@ public final class UserController {
         log.info("Запрошен список всех пользователей");
         return new ArrayList<>(users.values());
     }
+
 }
