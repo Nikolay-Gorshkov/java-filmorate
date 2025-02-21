@@ -1,7 +1,15 @@
 package ru.yandex.practicum.filmorate.exception;
 
-public class ValidationException extends RuntimeException {
-    public ValidationException(String message) {
+/**
+ * Пользовательское исключение для валидации данных в приложении Filmorate.
+ */
+public final class ValidationException extends RuntimeException {
+    /**
+     * Создает исключение с указанным сообщением.
+     *
+     * @param message сообщение об ошибке
+     */
+    public ValidationException(final String message) {
         super(message);
     }
 }
