@@ -42,7 +42,6 @@ public class UserController {
         return user;
     }
 
-
     @GetMapping
     public List<User> getAllUsers() {
         log.info("Запрошен список всех пользователей");

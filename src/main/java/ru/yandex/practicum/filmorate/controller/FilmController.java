@@ -22,6 +22,7 @@ public class FilmController {
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
         validateFilm(film);
+
         film.setId(++idCounter);
         films.put(film.getId(), film);
         log.info("Добавлен фильм: {}", film);
@@ -35,6 +36,7 @@ public class FilmController {
             throw new ValidationException("Фильм с таким id не найден");
         }
         validateFilm(film);
+
         films.put(film.getId(), film);
         log.info("Обновлен фильм: {}", film);
         return film;
