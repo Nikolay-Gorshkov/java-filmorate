@@ -11,7 +11,7 @@ public class FilmorateApplication {
 	/**
 	 * Приватный конструктор для предотвращения создания экземпляров утилитарного класса.
 	 */
-	private FilmorateApplication() {
+	public FilmorateApplication() {
 	}
 
 	/**
