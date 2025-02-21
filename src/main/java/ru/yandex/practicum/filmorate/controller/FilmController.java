@@ -47,12 +47,6 @@ public final class FilmController {
     public Film addFilm(@Valid @RequestBody final Film film) {
         validateFilm(film);
 
-        // Проверка на положительную продолжительность
-        if (film.getDuration() <= 0) {
-            log.error("Продолжительность фильма должна быть положительной: {}", film.getDuration());
-            throw new ValidationException("Продолжительность фильма должна быть положительной");
-        }
-
         film.setId(++idCounter);
         films.put(film.getId(), film);
         log.info("Добавлен фильм: {}", film);
@@ -73,12 +67,6 @@ public final class FilmController {
             throw new ValidationException("Фильм с таким id не найден");
         }
         validateFilm(film);
-
-        // Проверка на положительную продолжительность
-        if (film.getDuration() <= 0) {
-            log.error("Продолжительность фильма должна быть положительной: {}", film.getDuration());
-            throw new ValidationException("Продолжительность фильма должна быть положительной");
-        }
 
         films.put(film.getId(), film);
         log.info("Обновлен фильм: {}", film);
