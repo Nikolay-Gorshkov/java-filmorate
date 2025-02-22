@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -24,6 +23,7 @@ import java.util.Map;
 @RequestMapping("/users")
 @Slf4j
 public final class UserController {
+
     /**
      * Хранилище пользователей, где ключ — идентификатор пользователя, значение — объект пользователя.
      */
@@ -43,9 +43,7 @@ public final class UserController {
      */
     @PostMapping
     public User createUser(@Valid @RequestBody final User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+        setDefaultName(user);
         user.setId(++idCounter);
         users.put(user.getId(), user);
         log.info("Создан пользователь: {}", user);
@@ -65,9 +63,7 @@ public final class UserController {
             log.error("Пользователь с id {} не найден", user.getId());
             throw new ValidationException("Пользователь с таким id не найден");
         }
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+        setDefaultName(user);
         users.put(user.getId(), user);
         log.info("Обновлен пользователь: {}", user);
         return user;
@@ -84,4 +80,14 @@ public final class UserController {
         return new ArrayList<>(users.values());
     }
 
+    /**
+     * Если имя пользователя не задано или пустое, устанавливает значение логина в качестве имени.
+     *
+     * @param user объект пользователя для проверки
+     */
+    private void setDefaultName(final User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+    }
 }
