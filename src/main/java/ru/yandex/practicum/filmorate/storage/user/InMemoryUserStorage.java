@@ -5,6 +5,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -24,9 +25,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        if (!users.containsKey(user.getId())) {
-            throw new NotFoundException("Пользователь с id " + user.getId() + " не найден");
-        }
+        validateUser(user.getId());
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
@@ -36,11 +35,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User getUserById(int id) {
-        User user = users.get(id);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id " + id + " не найден");
-        }
-        return user;
+        validateUser(id);
+        return users.get(id);
     }
 
     @Override
@@ -50,63 +46,47 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void addFriend(int userId, int friendId) {
-        if (!users.containsKey(userId)) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        }
-        if (!users.containsKey(friendId)) {
-            throw new NotFoundException("Пользователь с id " + friendId + " не найден");
-        }
+        validateUser(userId);
+        validateUser(friendId);
         userFriends.computeIfAbsent(userId, k -> new HashSet<>()).add(friendId);
         userFriends.computeIfAbsent(friendId, k -> new HashSet<>()).add(userId);
     }
 
     @Override
     public void removeFriend(int userId, int friendId) {
-        if (!users.containsKey(userId)) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        }
-        if (!users.containsKey(friendId)) {
-            throw new NotFoundException("Пользователь с id " + friendId + " не найден");
-        }
+        validateUser(userId);
+        validateUser(friendId);
         userFriends.computeIfAbsent(userId, k -> new HashSet<>()).remove(friendId);
         userFriends.computeIfAbsent(friendId, k -> new HashSet<>()).remove(userId);
     }
 
     @Override
     public List<User> getFriends(int userId) {
-        if (!users.containsKey(userId)) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        }
+        validateUser(userId);
         Set<Integer> friendIds = userFriends.getOrDefault(userId, Collections.emptySet());
-        List<User> friendsList = new ArrayList<>();
-        for (Integer id : friendIds) {
-            User friend = users.get(id);
-            if (friend != null) {
-                friendsList.add(friend);
-            }
-        }
-        return friendsList;
+        return friendIds.stream()
+                .map(users::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<User> getCommonFriends(int userId, int otherId) {
-        if (!users.containsKey(userId)) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        }
-        if (!users.containsKey(otherId)) {
-            throw new NotFoundException("Пользователь с id " + otherId + " не найден");
-        }
+        validateUser(userId);
+        validateUser(otherId);
         Set<Integer> friends1 = userFriends.getOrDefault(userId, Collections.emptySet());
         Set<Integer> friends2 = userFriends.getOrDefault(otherId, Collections.emptySet());
         Set<Integer> common = new HashSet<>(friends1);
         common.retainAll(friends2);
-        List<User> commonFriends = new ArrayList<>();
-        for (Integer id : common) {
-            User friend = users.get(id);
-            if (friend != null) {
-                commonFriends.add(friend);
-            }
+        return common.stream()
+                .map(users::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private void validateUser(int id) {
+        if (!users.containsKey(id)) {
+            throw new NotFoundException("Пользователь с id " + id + " не найден");
         }
-        return commonFriends;
     }
 }
