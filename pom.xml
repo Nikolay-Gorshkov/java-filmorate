@@ -50,7 +50,9 @@
 			<artifactId>spring-boot-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- JetBrains Annotations оставлены, если они используются -->
+			<groupId>org.zalando</groupId>
+			<artifactId>logbook-spring-boot-starter</artifactId>
+			<version>3.7.2</version>
 		<dependency>
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations</artifactId>
