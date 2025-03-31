@@ -2,99 +2,65 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-/**
- * Контроллер для управления фильмами в приложении Filmorate.
- */
 @RestController
 @RequestMapping("/films")
 @Slf4j
-public final class FilmController {
-    /**
-     * Хранилище фильмов, где ключ — идентификатор фильма, значение — объект фильма.
-     */
-    private final Map<Integer, Film> films = new HashMap<>();
+public class FilmController {
 
-    /**
-     * Счетчик идентификаторов для новых фильмов.
-     */
-    private int idCounter = 0;
+    private final FilmService filmService;
 
-    /**
-     * Добавляет новый фильм в систему.
-     *
-     * @param film объект фильма для добавления
-     * @return добавленный фильм
-     * @throws ValidationException если данные фильма некорректны (например, отрицательная продолжительность
-     *                            или дата релиза раньше 28 декабря 1895 года)
-     */
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
+
     @PostMapping
-    public Film addFilm(@Valid @RequestBody final Film film) {
-        validateFilm(film);
-
-        film.setId(++idCounter);
-        films.put(film.getId(), film);
-        log.info("Добавлен фильм: {}", film);
-        return film;
+    public Film addFilm(@Valid @RequestBody Film film) {
+        Film addedFilm = filmService.addFilm(film);
+        log.info("Добавлен фильм: {}", addedFilm);
+        return addedFilm;
     }
 
-    /**
-     * Обновляет существующий фильм в системе.
-     *
-     * @param film объект фильма с обновленными данными
-     * @return обновленный фильм
-     * @throws ValidationException если фильм с указанным ID не найден или данные некорректны
-     */
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody final Film film) {
-        validateFilm(film);
-        if (!films.containsKey(film.getId())) {
-            log.error("Фильм с id {} не найден", film.getId());
-            throw new ValidationException("Фильм с таким id не найден");
-        }
-
-        films.put(film.getId(), film);
-        log.info("Обновлен фильм: {}", film);
-        return film;
+    public Film updateFilm(@Valid @RequestBody Film film) {
+        Film updatedFilm = filmService.updateFilm(film);
+        log.info("Обновлен фильм: {}", updatedFilm);
+        return updatedFilm;
     }
 
-    /**
-     * Возвращает список всех фильмов, хранящихся в системе.
-     *
-     * @return список объектов Film
-     */
     @GetMapping
     public List<Film> getAllFilms() {
         log.info("Запрошен список всех фильмов");
-        return new ArrayList<>(films.values());
+        return filmService.getAllFilms();
     }
 
-    /**
-     * Проверяет корректность данных фильма.
-     *
-     * @param film объект фильма для валидации
-     * @throws ValidationException если дата релиза раньше 28 декабря 1895 года
-     */
-    private void validateFilm(final Film film) {
-        // Проверка на дату релиза не раньше 28 декабря 1895 года
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            log.error("Дата релиза раньше 28 декабря 1895 года: {}", film.getReleaseDate());
-            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
-        }
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable int id) {
+        return filmService.getFilmById(id);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable int id, @PathVariable int userId) {
+        filmService.addLike(id, userId);
+        log.info("Пользователь {} поставил лайк фильму {}", userId, id);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable int id, @PathVariable int userId) {
+        filmService.removeLike(id, userId);
+        log.info("Пользователь {} удалил лайк с фильма {}", userId, id);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getPopularFilms(count);
     }
 }
+
