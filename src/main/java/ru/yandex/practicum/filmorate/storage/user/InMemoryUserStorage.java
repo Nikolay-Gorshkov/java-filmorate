@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.user;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
@@ -11,7 +12,8 @@ import java.util.stream.Collectors;
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
     private int userIdCounter = 0;
-    private final Map<Integer, Set<Integer>> userFriends = new HashMap<>();
+    // Изменили: вместо Map<Integer, Set<Integer>> используем Map с хранением статуса дружбы.
+    private final Map<Integer, Map<Integer, FriendshipStatus>> userFriends = new HashMap<>();
 
     @Override
     public User createUser(User user) {
@@ -44,28 +46,48 @@ public class InMemoryUserStorage implements UserStorage {
         return new ArrayList<>(users.values());
     }
 
+    // При отправке заявки в друзья статус устанавливаем как UNCONFIRMED.
     @Override
     public void addFriend(int userId, int friendId) {
         validateUser(userId);
         validateUser(friendId);
-        userFriends.computeIfAbsent(userId, k -> new HashSet<>()).add(friendId);
-        userFriends.computeIfAbsent(friendId, k -> new HashSet<>()).add(userId);
+        userFriends.computeIfAbsent(userId, k -> new HashMap<>()).put(friendId, FriendshipStatus.UNCONFIRMED);
+    }
+
+    // Новый метод для подтверждения заявки в друзья.
+    public void confirmFriend(int userId, int friendId) {
+        validateUser(userId);
+        validateUser(friendId);
+        if (userFriends.containsKey(friendId) &&
+                userFriends.get(friendId).getOrDefault(userId, null) == FriendshipStatus.UNCONFIRMED) {
+            // При подтверждении статусы обновляем для обоих пользователей.
+            userFriends.get(friendId).put(userId, FriendshipStatus.CONFIRMED);
+            userFriends.computeIfAbsent(userId, k -> new HashMap<>()).put(friendId, FriendshipStatus.CONFIRMED);
+        } else {
+            throw new NotFoundException("Нет запроса на дружбу от пользователя " + friendId);
+        }
     }
 
     @Override
     public void removeFriend(int userId, int friendId) {
         validateUser(userId);
         validateUser(friendId);
-        userFriends.computeIfAbsent(userId, k -> new HashSet<>()).remove(friendId);
-        userFriends.computeIfAbsent(friendId, k -> new HashSet<>()).remove(userId);
+        if(userFriends.containsKey(userId)) {
+            userFriends.get(userId).remove(friendId);
+        }
+        if(userFriends.containsKey(friendId)) {
+            userFriends.get(friendId).remove(userId);
+        }
     }
 
     @Override
     public List<User> getFriends(int userId) {
         validateUser(userId);
-        Set<Integer> friendIds = userFriends.getOrDefault(userId, Collections.emptySet());
-        return friendIds.stream()
-                .map(users::get)
+        Map<Integer, FriendshipStatus> friendsMap = userFriends.getOrDefault(userId, Collections.emptyMap());
+        // Возвращаем только подтверждённых друзей.
+        return friendsMap.entrySet().stream()
+                .filter(entry -> entry.getValue() == FriendshipStatus.CONFIRMED)
+                .map(entry -> users.get(entry.getKey()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
@@ -74,11 +96,16 @@ public class InMemoryUserStorage implements UserStorage {
     public List<User> getCommonFriends(int userId, int otherId) {
         validateUser(userId);
         validateUser(otherId);
-        Set<Integer> friends1 = userFriends.getOrDefault(userId, Collections.emptySet());
-        Set<Integer> friends2 = userFriends.getOrDefault(otherId, Collections.emptySet());
-        Set<Integer> common = new HashSet<>(friends1);
-        common.retainAll(friends2);
-        return common.stream()
+        Map<Integer, FriendshipStatus> friends1 = userFriends.getOrDefault(userId, Collections.emptyMap());
+        Map<Integer, FriendshipStatus> friends2 = userFriends.getOrDefault(otherId, Collections.emptyMap());
+        Set<Integer> commonIds = new HashSet<>();
+        for (Map.Entry<Integer, FriendshipStatus> entry : friends1.entrySet()) {
+            if (entry.getValue() == FriendshipStatus.CONFIRMED &&
+                    friends2.getOrDefault(entry.getKey(), null) == FriendshipStatus.CONFIRMED) {
+                commonIds.add(entry.getKey());
+            }
+        }
+        return commonIds.stream()
                 .map(users::get)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

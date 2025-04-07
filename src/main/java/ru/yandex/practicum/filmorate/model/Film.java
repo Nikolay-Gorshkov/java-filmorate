@@ -6,8 +6,8 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class Film {
@@ -28,14 +28,24 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private int duration;
 
+    // Новые свойства:
+    // Поле для жанров (фильм может относиться сразу к нескольким жанрам)
+    private Set<Genre> genres;
+
+    // Рейтинг MPAA
+    private MpaaRating mpaaRating;
+
     public Film() {
     }
 
-    public Film(final int id, final String name, final String description, final LocalDate releaseDate, final int duration) {
+    public Film(final int id, final String name, final String description, final LocalDate releaseDate, final int duration,
+                Set<Genre> genres, MpaaRating mpaaRating) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+        this.genres = genres;
+        this.mpaaRating = mpaaRating;
     }
 }
