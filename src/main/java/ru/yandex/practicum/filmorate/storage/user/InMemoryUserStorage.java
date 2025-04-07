@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
     private int userIdCounter = 0;
-    // Изменили: вместо Map<Integer, Set<Integer>> используем Map с хранением статуса дружбы.
     private final Map<Integer, Map<Integer, FriendshipStatus>> userFriends = new HashMap<>();
 
     @Override
@@ -59,7 +58,6 @@ public class InMemoryUserStorage implements UserStorage {
         validateUser(friendId);
         if (userFriends.containsKey(friendId) &&
                 userFriends.get(friendId).getOrDefault(userId, null) == FriendshipStatus.UNCONFIRMED) {
-            // При подтверждении статусы обновляем для обоих пользователей.
             userFriends.get(friendId).put(userId, FriendshipStatus.CONFIRMED);
             userFriends.computeIfAbsent(userId, k -> new HashMap<>()).put(friendId, FriendshipStatus.CONFIRMED);
         } else {
@@ -83,7 +81,6 @@ public class InMemoryUserStorage implements UserStorage {
     public List<User> getFriends(int userId) {
         validateUser(userId);
         Map<Integer, FriendshipStatus> friendsMap = userFriends.getOrDefault(userId, Collections.emptyMap());
-        // Возвращаем только подтверждённых друзей.
         return friendsMap.entrySet().stream()
                 .filter(entry -> entry.getValue() == FriendshipStatus.CONFIRMED)
                 .map(entry -> users.get(entry.getKey()))
