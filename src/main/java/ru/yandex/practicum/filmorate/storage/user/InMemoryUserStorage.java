@@ -74,11 +74,10 @@ public class InMemoryUserStorage implements UserStorage {
     public void removeFriend(int userId, int friendId) {
         validateUser(userId);
         validateUser(friendId);
-        if(userFriends.containsKey(userId)) {
+        if (userFriends.containsKey(userId)) {
             userFriends.get(userId).remove(friendId);
         }
-
-        if(userFriends.containsKey(friendId)) {
+        if (userFriends.containsKey(friendId)) {
             userFriends.get(friendId).remove(userId);
         }
     }
