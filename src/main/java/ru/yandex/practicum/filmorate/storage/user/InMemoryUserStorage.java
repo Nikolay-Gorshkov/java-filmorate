@@ -46,7 +46,6 @@ public class InMemoryUserStorage implements UserStorage {
         return new ArrayList<>(users.values());
     }
 
-    // При отправке заявки в друзья статус устанавливаем как UNCONFIRMED.
     @Override
     public void addFriend(int userId, int friendId) {
         validateUser(userId);
