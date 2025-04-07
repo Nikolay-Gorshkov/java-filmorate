@@ -50,7 +50,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        // Проверяем, существует ли пользователь
         getUserById(user.getId());
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
         jdbcTemplate.update(sql,

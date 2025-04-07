@@ -77,6 +77,7 @@ public class InMemoryUserStorage implements UserStorage {
         if(userFriends.containsKey(userId)) {
             userFriends.get(userId).remove(friendId);
         }
+
         if(userFriends.containsKey(friendId)) {
             userFriends.get(friendId).remove(userId);
         }
