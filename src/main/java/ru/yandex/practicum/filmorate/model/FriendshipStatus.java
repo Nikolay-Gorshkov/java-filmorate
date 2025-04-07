@@ -4,4 +4,3 @@ public enum FriendshipStatus {
     UNCONFIRMED,
     CONFIRMED
 }
-
