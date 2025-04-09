@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.mapper;
 
 import ru.yandex.practicum.filmorate.DTO.FilmRequest;
 import ru.yandex.practicum.filmorate.DTO.FilmResponse;
+import ru.yandex.practicum.filmorate.DTO.MpaDTO;
+import ru.yandex.practicum.filmorate.DTO.GenreDTO;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -45,16 +47,17 @@ public class FilmMapper {
         dto.setReleaseDate(film.getReleaseDate().toString());
         dto.setDuration(film.getDuration());
 
-        FilmResponse.MpaDTO mpaDTO = new FilmResponse.MpaDTO();
+        // Используем вынесенные классы MpaDTO и GenreDTO
+        MpaDTO mpaDTO = new MpaDTO();
         mpaDTO.setId(film.getMpaaRating().ordinal() + 1);
         mpaDTO.setName(film.getMpaaRating().name().replace("_", "-"));
         dto.setMpa(mpaDTO);
 
-        List<FilmResponse.GenreDTO> genreList = film.getGenres().stream().map(genre -> {
-            FilmResponse.GenreDTO g = new FilmResponse.GenreDTO();
-            g.setId(genre.ordinal() + 1);
-            g.setName(getGenreNameRu(genre));
-            return g;
+        List<GenreDTO> genreList = film.getGenres().stream().map(genre -> {
+            GenreDTO genreDTO = new GenreDTO();
+            genreDTO.setId(genre.ordinal() + 1);
+            genreDTO.setName(getGenreNameRu(genre));
+            return genreDTO;
         }).collect(Collectors.toList());
         dto.setGenres(genreList);
         return dto;

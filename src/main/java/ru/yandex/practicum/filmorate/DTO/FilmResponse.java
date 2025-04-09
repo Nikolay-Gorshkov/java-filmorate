@@ -13,16 +13,4 @@ public class FilmResponse {
     private int duration;
     private MpaDTO mpa;
     private List<GenreDTO> genres;
-
-    @Data
-    public static class MpaDTO {
-        private int id;
-        private String name;
-    }
-
-    @Data
-    public static class GenreDTO {
-        private int id;
-        private String name;
-    }
 }

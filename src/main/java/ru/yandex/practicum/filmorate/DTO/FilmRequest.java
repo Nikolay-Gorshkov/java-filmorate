@@ -6,7 +6,6 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,16 +30,4 @@ public class FilmRequest {
     private MpaDTO mpa;
 
     private List<GenreDTO> genres;
-
-    @Data
-    public static class MpaDTO {
-        private int id;
-        private String name;
-    }
-
-    @Data
-    public static class GenreDTO {
-        private int id;
-        private String name;
-    }
 }
