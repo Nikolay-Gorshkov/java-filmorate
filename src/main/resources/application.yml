@@ -1,3 +1,7 @@
 logging:
   level:
     org.zalando.logbook: TRACE
+    org.springframework.jdbc: DEBUG
+    org.springframework.boot.sql.init: DEBUG
+    org.h2: DEBUG
+

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.DTO;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,19 +7,16 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class Film {
-    private static final int MAX_DESCRIPTION_LENGTH = 200;
-
+public class FilmRequest {
     private int id;
 
     @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
 
-    @Size(max = MAX_DESCRIPTION_LENGTH, message = "Описание не должно превышать 200 символов")
+    @Size(max = 200, message = "Описание не должно превышать 200 символов")
     private String description;
 
     @NotNull(message = "Дата релиза обязательна")
@@ -29,21 +26,8 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private int duration;
 
-    private List<Genre> genres = new ArrayList<>();
+    @NotNull(message = "Рейтинг MPA обязателен")
+    private MpaDTO mpa;
 
-    private MpaaRating mpaaRating;
-
-    public Film() {
-    }
-
-    public Film(final int id, final String name, final String description, final LocalDate releaseDate, final int duration,
-                List<Genre> genres, MpaaRating mpaaRating) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-        this.genres = genres;
-        this.mpaaRating = mpaaRating;
-    }
+    private List<GenreDTO> genres;
 }

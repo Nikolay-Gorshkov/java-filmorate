@@ -4,16 +4,19 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.DTO.FilmRequest;
+import ru.yandex.practicum.filmorate.DTO.FilmResponse;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-
     private final FilmService filmService;
 
     @Autowired
@@ -21,29 +24,26 @@ public class FilmController {
         this.filmService = filmService;
     }
 
-    @PostMapping
-    public Film addFilm(@Valid @RequestBody Film film) {
-        Film addedFilm = filmService.addFilm(film);
-        log.info("Добавлен фильм: {}", addedFilm);
-        return addedFilm;
-    }
-
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film) {
-        Film updatedFilm = filmService.updateFilm(film);
+    public FilmResponse updateFilm(@Valid @RequestBody FilmRequest filmRequest) {
+        Film filmToUpdate = FilmMapper.toFilm(filmRequest);
+        Film updatedFilm = filmService.updateFilm(filmToUpdate);
         log.info("Обновлен фильм: {}", updatedFilm);
-        return updatedFilm;
+        return FilmMapper.toFilmResponse(updatedFilm);
     }
 
     @GetMapping
-    public List<Film> getAllFilms() {
+    public List<FilmResponse> getAllFilms() {
         log.info("Запрошен список всех фильмов");
-        return filmService.getAllFilms();
+        return filmService.getAllFilms().stream()
+                .map(FilmMapper::toFilmResponse)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public Film getFilm(@PathVariable int id) {
-        return filmService.getFilmById(id);
+    public FilmResponse getFilm(@PathVariable int id) {
+        Film film = filmService.getFilmById(id);
+        return FilmMapper.toFilmResponse(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -61,6 +61,14 @@ public class FilmController {
     @GetMapping("/popular")
     public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         return filmService.getPopularFilms(count);
+    }
+
+    @PostMapping
+    public FilmResponse addFilm(@Valid @RequestBody FilmRequest filmRequest) {
+        Film film = FilmMapper.toFilm(filmRequest);
+        Film createdFilm = filmService.addFilm(film);
+        log.info("Создан фильм: {}", createdFilm);
+        return FilmMapper.toFilmResponse(createdFilm);
     }
 }
 
