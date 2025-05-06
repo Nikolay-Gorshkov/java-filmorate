@@ -18,7 +18,7 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public List<Genre> getAllGenres() {
-        String sql = "SELECT * FROM genres";  // Таблица genres должна существовать в БД
+        String sql = "SELECT * FROM genres";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs));
     }
 
