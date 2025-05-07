@@ -18,11 +18,13 @@ import java.util.List;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final DirectorService directorService;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, UserService userService) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, UserService userService, DirectorService directorService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
+        this.directorService = directorService;
     }
 
     public Film addFilm(Film film) {
@@ -106,5 +108,10 @@ public class FilmService {
             }
         }
         return filmStorage.updateFilm(film);
+    }
+
+    public List<Film> getFilmsByDirector(int directorId, String sortBy) {
+        directorService.getDirectorById(directorId); // Проверяем существование режиссера
+        return filmStorage.getFilmsByDirector(directorId, sortBy);
     }
 }

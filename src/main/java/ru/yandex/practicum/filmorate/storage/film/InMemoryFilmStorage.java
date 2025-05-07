@@ -73,4 +73,28 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
     }
+
+    @Override
+    public List<Film> getFilmsByDirector(Integer directorId, String sortBy) {
+        List<Film> directorFilms = films.values().stream()
+                .filter(f -> f.getDirectors().stream()
+                        .anyMatch(d -> d.getId() == directorId))
+                .collect(Collectors.toList());
+
+        switch (sortBy.toLowerCase()) {
+            case "year":
+                directorFilms.sort(Comparator.comparing(Film::getReleaseDate));
+                break;
+            case "likes":
+                directorFilms.sort((f1, f2) -> Integer.compare(
+                        filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
+                        filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size()
+                ));
+                break;
+            default:
+                throw new ValidationException("Недопустимый параметр сортировки: " + sortBy);
+        }
+
+        return directorFilms;
+    }
 }

@@ -70,5 +70,14 @@ public class FilmController {
         log.info("Создан фильм: {}", createdFilm);
         return FilmMapper.toFilmResponse(createdFilm);
     }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getFilmsByDirector(
+            @PathVariable int directorId,
+            @RequestParam(defaultValue = "likes") String sortBy) {
+
+        log.info("Получение фильмов режиссера {} с сортировкой по {}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
 }
 

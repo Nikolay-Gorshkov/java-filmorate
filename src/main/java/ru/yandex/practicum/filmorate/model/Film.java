@@ -33,17 +33,20 @@ public class Film {
 
     private MpaaRating mpaaRating;
 
+    private List<Director> directors = new ArrayList<>();
+
     public Film() {
     }
 
     public Film(final int id, final String name, final String description, final LocalDate releaseDate, final int duration,
-                List<Genre> genres, MpaaRating mpaaRating) {
+                List<Genre> genres, MpaaRating mpaaRating, List<Director> directors) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-        this.genres = genres;
+        this.genres = genres != null ? genres : new ArrayList<>();
         this.mpaaRating = mpaaRating;
+        this.directors = directors != null ? directors : new ArrayList<>();
     }
 }
