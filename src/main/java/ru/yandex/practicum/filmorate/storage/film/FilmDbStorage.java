@@ -176,15 +176,15 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        String sql = "SELECT f.*, COUNT(fl.film_id) AS popularity " +
-                "FROM films f " +
-                "JOIN film_likes fl ON f.id = fl.film_id " +
-                "JOIN film_genres fg ON f.id = fg.film_id " +
-                "JOIN genres g ON fg.genre_id = g.id " +
-                "WHERE fl.user_id IN (:userId, :friendId) " +
-                "GROUP BY f.id " +
-                "HAVING COUNT(DISTINCT fl.user_id) = 2 " +
-                "ORDER BY popularity DESC";
+        String sql = "SELECT f.*, COUNT(fl.film_id) AS popularity \n" +
+                "FROM films f \n" +
+                "JOIN film_likes fl ON f.id = fl.film_id \n" +
+                "JOIN film_genres fg ON f.id = fg.film_id \n" +
+                "JOIN genres g ON fg.genre_id = g.id \n" +
+                "WHERE fl.user_id IN (?, ?) \n" +
+                "GROUP BY f.id \n" +
+                "HAVING COUNT(DISTINCT fl.user_id) = 2 \n" +
+                "ORDER BY popularity DESC;";
 
         Map<String, Object> params = new HashMap<>();
         params.put("userId", userId);
