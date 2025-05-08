@@ -110,7 +110,7 @@ public class FilmService {
     }
 
     public List<Film> getCommonFilms(int userId, int friendId) {
-        if (userId==friendId) {
+        if (userId == friendId) {
             throw new IllegalArgumentException("Пользователь и друг не могут быть одним и тем же человеком");
         }
         userService.getUserById(userId);
