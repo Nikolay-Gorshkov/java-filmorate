@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -106,5 +107,15 @@ public class FilmService {
             }
         }
         return filmStorage.updateFilm(film);
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        if (userId==friendId) {
+            throw new IllegalArgumentException("Пользователь и друг не могут быть одним и тем же человеком");
+        }
+        userService.getUserById(userId);
+        userService.getUserById(friendId);
+        List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
+        return commonFilms != null ? commonFilms : Collections.emptyList();
     }
 }

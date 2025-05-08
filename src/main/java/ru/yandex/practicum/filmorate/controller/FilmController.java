@@ -70,5 +70,10 @@ public class FilmController {
         log.info("Создан фильм: {}", createdFilm);
         return FilmMapper.toFilmResponse(createdFilm);
     }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam int userId, @RequestParam int friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
 }
 
