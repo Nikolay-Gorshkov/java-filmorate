@@ -178,17 +178,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        boolean areFriends = Optional.ofNullable(jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM friendships " +
-                                "WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?) " +
-                                "AND status = 'CONFIRMED' " +
-                                "HAVING COUNT(*) > 0",
-                        Integer.class,
-                        userId, friendId, friendId, userId))
-                .orElse(0) > 0;
-        if (!areFriends) {
-            return List.of();
-        }
         String sql = "SELECT f.id, f.name, COUNT(fl.user_id) AS popularity " +
                 "FROM films f " +
                 "JOIN film_likes fl ON f.id = fl.film_id " +
