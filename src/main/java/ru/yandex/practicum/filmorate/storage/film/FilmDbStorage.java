@@ -12,10 +12,9 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaaRating;
 
 import java.sql.*;
+import java.sql.Date;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Repository("filmDbStorage")
 public class FilmDbStorage implements FilmStorage {
@@ -177,13 +176,26 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        String sql = "SELECT f.id, f.name, COUNT(fl.user_id) AS popularity " +
+        String sql = "SELECT f.*, COUNT(fl.film_id) AS popularity " +
                 "FROM films f " +
                 "JOIN film_likes fl ON f.id = fl.film_id " +
-                "WHERE fl.user_id IN (?, ?) " +
-                "GROUP BY f.id, f.name " +
+                "JOIN film_genres fg ON f.id = fg.film_id " +
+                "JOIN genres g ON fg.genre_id = g.id " +
+                "WHERE fl.user_id IN (:userId, :friendId) " +
+                "GROUP BY f.id " +
                 "HAVING COUNT(DISTINCT fl.user_id) = 2 " +
                 "ORDER BY popularity DESC";
-        return jdbcTemplate.query(sql, this::mapRowToFilm, userId, friendId);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("userId", userId);
+        params.put("friendId", friendId);
+
+        List<Film> commonFilms = jdbcTemplate.query(sql, new Map[]{params}, this::mapRowToFilm);
+
+        commonFilms.forEach(film -> {
+            film.setGenres(getGenresForFilm(film.getId()));
+        });
+
+        return commonFilms;
     }
 }
