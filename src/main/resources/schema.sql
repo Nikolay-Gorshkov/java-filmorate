@@ -54,3 +54,16 @@ CREATE TABLE friendships (
     FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT chk_status CHECK (status IN ('UNCONFIRMED', 'CONFIRMED'))
 );
+
+-- Таблица для хранения событий
+CREATE TABLE user_event (
+    event_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    event_type VARCHAR(10) NOT NULL,
+    operation VARCHAR(10) NOT NULL,
+    entity_id BIGINT NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT chk_event_type CHECK (event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
+    CONSTRAINT chk_operation CHECK (operation IN ('ADD', 'REMOVE', 'UPDATE'))
+);
