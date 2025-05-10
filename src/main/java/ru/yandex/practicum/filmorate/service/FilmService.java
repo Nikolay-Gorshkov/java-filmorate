@@ -25,6 +25,15 @@ public class FilmService {
         this.userService = userService;
     }
 
+    public boolean filmExists(int filmId) {
+        try {
+            getFilmById(filmId);
+            return true;
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
+
     public Film addFilm(Film film) {
         return filmStorage.addFilm(film);
     }
