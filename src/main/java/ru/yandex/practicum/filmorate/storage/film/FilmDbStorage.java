@@ -153,12 +153,16 @@ public class FilmDbStorage implements FilmStorage {
         getFilmById(filmId);
         String sql = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, filmId, userId);
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, userId, "LIKE", "ADD", filmId);
     }
 
     @Override
     public void removeLike(int filmId, int userId) {
         String sql = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
         jdbcTemplate.update(sql, filmId, userId);
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, userId, "LIKE", "REMOVE", filmId);
     }
 
     @Override
