@@ -16,13 +16,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Import({UserDbStorage.class})
 class FilmorateApplicationTests {
-	private final UserDbStorage userStorage;
+    private final UserDbStorage userStorage;
 
-	@Test
-	public void testFindUserById() {
-		User user = userStorage.getUserById(1);
+    @Test
+    public void testFindUserById() {
+        User user = userStorage.getUserById(1);
 
-		assertThat(user)
-				.hasFieldOrPropertyWithValue("id", 1);
-	}
+        assertThat(user)
+                .hasFieldOrPropertyWithValue("id", 1);
+    }
 }

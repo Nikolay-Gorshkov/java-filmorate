@@ -16,6 +16,7 @@ import ru.yandex.practicum.filmorate.model.MpaaRating;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -62,13 +63,20 @@ public class FilmDbStorage implements FilmStorage {
 
     private Genre mapGenreName(String name) {
         switch (name.toLowerCase()) {
-            case "комедия": return Genre.COMEDY;
-            case "драма": return Genre.DRAMA;
-            case "анимация": return Genre.ANIMATION;
-            case "триллер": return Genre.THRILLER;
-            case "документальный": return Genre.DOCUMENTARY;
-            case "боевик": return Genre.ACTION;
-            default: throw new IllegalArgumentException("Неизвестный жанр: " + name);
+            case "комедия":
+                return Genre.COMEDY;
+            case "драма":
+                return Genre.DRAMA;
+            case "анимация":
+                return Genre.ANIMATION;
+            case "триллер":
+                return Genre.THRILLER;
+            case "документальный":
+                return Genre.DOCUMENTARY;
+            case "боевик":
+                return Genre.ACTION;
+            default:
+                throw new IllegalArgumentException("Неизвестный жанр: " + name);
         }
     }
 
@@ -233,5 +241,41 @@ public class FilmDbStorage implements FilmStorage {
             case "likes" -> "likes DESC";
             default -> throw new ValidationException("Недопустимый параметр сортировки: " + sortBy);
         };
+    }
+
+    @Override
+    public List<Film> searchFilms(String query, List<String> byParams) {
+        if (query == null || query.isBlank()) {
+            throw new ValidationException("Поисковый запрос не может быть пустым");
+        }
+        List<String> conditions = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        String searchPattern = "%" + query.toLowerCase() + "%";
+
+        if (byParams.contains("title")) {
+            conditions.add("LOWER(f.name) LIKE ?");
+            params.add(searchPattern);
+        }
+        if (byParams.contains("director")) {
+            conditions.add("LOWER(d.name) LIKE ?");
+            params.add(searchPattern);
+        }
+
+        if (conditions.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String whereClause = "WHERE " + String.join(" OR ", conditions);
+
+        String sql = "SELECT f.*, COUNT(fl.user_id) AS likes " +
+                "FROM films f " +
+                "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
+                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id " +
+                whereClause +
+                " GROUP BY f.id " +
+                "ORDER BY likes DESC";
+
+        return jdbcTemplate.query(sql, this::mapRowToFilm, params.toArray());
     }
 }

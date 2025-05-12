@@ -97,4 +97,26 @@ public class InMemoryFilmStorage implements FilmStorage {
 
         return directorFilms;
     }
+
+    @Override
+    public List<Film> searchFilms(String query, List<String> byParams) {
+        String searchQuery = query.toLowerCase();
+
+        return films.values().stream()
+                .filter(film -> {
+                    boolean matchesTitle = byParams.contains("title")
+                            && film.getName().toLowerCase().contains(searchQuery);
+
+                    boolean matchesDirector = byParams.contains("director")
+                            && film.getDirectors().stream()
+                            .anyMatch(d -> d.getName().toLowerCase().contains(searchQuery));
+
+                    return matchesTitle || matchesDirector;
+                })
+                .sorted((f1, f2) -> Integer.compare(
+                        filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
+                        filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size()
+                ))
+                .collect(Collectors.toList());
+    }
 }

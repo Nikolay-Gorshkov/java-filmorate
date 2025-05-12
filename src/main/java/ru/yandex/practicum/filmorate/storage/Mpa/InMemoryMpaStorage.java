@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.Mpa;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.MpaaRating;
+
 import java.util.Arrays;
 import java.util.List;
 

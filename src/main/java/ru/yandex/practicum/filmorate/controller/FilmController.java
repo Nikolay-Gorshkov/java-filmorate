@@ -79,5 +79,17 @@ public class FilmController {
         log.info("Получение фильмов режиссера {} с сортировкой по {}", directorId, sortBy);
         return filmService.getFilmsByDirector(directorId, sortBy);
     }
+
+    @GetMapping("/search")
+    public List<FilmResponse> searchFilms(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "title,director") List<String> by) {
+
+        List<Film> films = filmService.searchFilms(query, by); // Получаем List<Film>
+
+        return films.stream()
+                .map(FilmMapper::toFilmResponse) // Преобразуем каждый Film в FilmResponse
+                .collect(Collectors.toList());
+    }
 }
 

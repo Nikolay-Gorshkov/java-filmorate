@@ -114,4 +114,20 @@ public class FilmService {
         directorService.getDirectorById(directorId); // Проверяем существование режиссера
         return filmStorage.getFilmsByDirector(directorId, sortBy);
     }
+
+    public List<Film> searchFilms(String query, List<String> byParams) {
+        validateSearchParams(byParams);
+        return filmStorage.searchFilms(query, byParams);
+    }
+
+    private void validateSearchParams(List<String> byParams) {
+        if (byParams == null || byParams.isEmpty()) {
+            throw new ValidationException("Параметр 'by' обязателен");
+        }
+        for (String param : byParams) {
+            if (!param.equals("title") && !param.equals("director")) {
+                throw new ValidationException("Недопустимое значение параметра 'by': " + param);
+            }
+        }
+    }
 }
