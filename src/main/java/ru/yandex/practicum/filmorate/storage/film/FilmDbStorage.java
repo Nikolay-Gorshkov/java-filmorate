@@ -12,10 +12,9 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaaRating;
 
 import java.sql.*;
+import java.sql.Date;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Repository("filmDbStorage")
 public class FilmDbStorage implements FilmStorage {
@@ -173,5 +172,54 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY likes DESC " +
                 "LIMIT ?";
         return jdbcTemplate.query(sql, this::mapRowToFilm, count);
+    }
+
+    @Override
+    public List<Film> getFilmsByIds(List<Integer> ids) {
+        if (ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
+        String sql = "SELECT * FROM films WHERE id IN (" + inSql + ")";
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Film film = new Film();
+            film.setId(rs.getInt("id"));
+            film.setName(rs.getString("name"));
+            film.setDescription(rs.getString("description"));
+            film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+            film.setDuration(rs.getInt("duration"));
+            String mpaaRatingDb = rs.getString("mpaa_rating");
+            String mpaaEnumStr = mpaaRatingDb.replace("-", "_");
+            film.setMpaaRating(MpaaRating.valueOf(mpaaEnumStr));
+            return film;
+        }, ids.toArray());
+
+        // Получение жанров
+        String sqlGenres = "SELECT fg.film_id, g.name FROM film_genres fg JOIN genres g ON fg.genre_id = g.id WHERE fg.film_id IN (" + inSql + ")";
+        List<Map<String, Object>> genreRows = jdbcTemplate.queryForList(sqlGenres, ids.toArray());
+        Map<Integer, List<Genre>> genresMap = new HashMap<>();
+        for (Map<String, Object> row : genreRows) {
+            int filmId = (int) row.get("film_id");
+            String genreName = (String) row.get("name");
+            Genre genre = mapGenreName(genreName);
+            genresMap.computeIfAbsent(filmId, k -> new ArrayList<>()).add(genre);
+        }
+        // Установка жанров фильмам
+        for (Film film : films) {
+            film.setGenres(genresMap.getOrDefault(film.getId(), Collections.emptyList()));
+        }
+        return films;
+    }
+
+    private Genre mapGenreName(String name) {
+        switch (name.toLowerCase()) {
+            case "комедия": return Genre.COMEDY;
+            case "драма": return Genre.DRAMA;
+            case "анимация": return Genre.ANIMATION;
+            case "триллер": return Genre.THRILLER;
+            case "документальный": return Genre.DOCUMENTARY;
+            case "боевик": return Genre.ACTION;
+            default: throw new IllegalArgumentException("Неизвестный жанр: " + name);
+        }
     }
 }

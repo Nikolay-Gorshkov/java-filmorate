@@ -73,4 +73,12 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
     }
+
+    @Override
+    public List<Film> getFilmsByIds(List<Integer> ids) {
+        return ids.stream()
+                .filter(films::containsKey)
+                .map(films::get)
+                .collect(Collectors.toList());
+    }
 }

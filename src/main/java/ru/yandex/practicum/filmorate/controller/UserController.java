@@ -67,4 +67,10 @@ public class UserController {
     public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
         return userService.getCommonFriends(id, otherId);
     }
+
+    @GetMapping("/{id}/recommendations")
+    public List<Film> getRecommendations(@PathVariable int id) {
+        userService.getUserById(id); // Проверка существования пользователя
+        return userService.getRecommendations(id);
+    }
 }
