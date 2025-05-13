@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -162,10 +163,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
-        if (count <= 0) {
-            throw new ValidationException("Количество фильмов должно быть положительным");
-        }
+    public List<Film> getMostPopularFilms(int count) {
         String sql = "SELECT f.*, COUNT(fl.user_id) AS likes " +
                 "FROM films f " +
                 "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
@@ -173,5 +171,51 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY likes DESC " +
                 "LIMIT ?";
         return jdbcTemplate.query(sql, this::mapRowToFilm, count);
+    }
+
+    @Override
+    public List<Film> getMostPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        String sql = "SELECT f.*, COUNT(fl.user_id) AS likes " +
+                "FROM films f " +
+                "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id ";
+
+        StringBuilder whereClause = new StringBuilder();
+        if (genreId != null && year != null) {
+            whereClause.append("WHERE fg.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ?");
+        } else if (genreId != null) {
+            whereClause.append("WHERE fg.genre_id = ?");
+        } else if (year != null) {
+            whereClause.append("WHERE EXTRACT(YEAR FROM f.release_date) = ?");
+        }
+
+        sql += whereClause.toString();
+
+        sql += " GROUP BY f.id ORDER BY likes DESC LIMIT ?";
+
+        SqlParameterValue[] params;
+        if (genreId != null && year != null) {
+            params = new SqlParameterValue[]{
+                    new SqlParameterValue(Types.INTEGER, genreId),
+                    new SqlParameterValue(Types.INTEGER, year),
+                    new SqlParameterValue(Types.INTEGER, count)
+            };
+        } else if (genreId != null) {
+            params = new SqlParameterValue[]{
+                    new SqlParameterValue(Types.INTEGER, genreId),
+                    new SqlParameterValue(Types.INTEGER, count)
+            };
+        } else if (year != null) {
+            params = new SqlParameterValue[]{
+                    new SqlParameterValue(Types.INTEGER, year),
+                    new SqlParameterValue(Types.INTEGER, count)
+            };
+        } else {
+            params = new SqlParameterValue[]{
+                    new SqlParameterValue(Types.INTEGER, count)
+            };
+        }
+
+        return jdbcTemplate.query(sql, this::mapRowToFilm, (Object[]) params);
     }
 }
