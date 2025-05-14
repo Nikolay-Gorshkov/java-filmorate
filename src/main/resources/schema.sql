@@ -1,5 +1,5 @@
 -- Таблица пользователей
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
     login VARCHAR(255) NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE users (
 );
 
 -- Таблица фильмов
-CREATE TABLE films (
+CREATE TABLE IF NOT EXISTS films (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -21,13 +21,13 @@ CREATE TABLE films (
 );
 
 -- Таблица жанров
-CREATE TABLE genres (
+CREATE TABLE IF NOT EXISTS genres (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE
 );
 
 -- Связующая таблица для жанров фильма
-CREATE TABLE film_genres (
+CREATE TABLE IF NOT EXISTS film_genres (
     film_id INTEGER NOT NULL,
     genre_id INTEGER NOT NULL,
     PRIMARY KEY (film_id, genre_id),
@@ -36,7 +36,7 @@ CREATE TABLE film_genres (
 );
 
 -- Таблица лайков фильмов (связь многие-ко-многим между фильмами и пользователями)
-CREATE TABLE film_likes (
+CREATE TABLE IF NOT EXISTS film_likes (
     film_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     PRIMARY KEY (film_id, user_id),
@@ -45,7 +45,7 @@ CREATE TABLE film_likes (
 );
 
 -- Таблица дружбы пользователей с указанием статуса
-CREATE TABLE friendships (
+CREATE TABLE IF NOT EXISTS friendships (
     user_id INTEGER NOT NULL,
     friend_id INTEGER NOT NULL,
     status VARCHAR(15) NOT NULL,

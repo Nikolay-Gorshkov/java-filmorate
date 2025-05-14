@@ -210,16 +210,4 @@ public class FilmDbStorage implements FilmStorage {
         }
         return films;
     }
-
-    private Genre mapGenreName(String name) {
-        switch (name.toLowerCase()) {
-            case "комедия": return Genre.COMEDY;
-            case "драма": return Genre.DRAMA;
-            case "анимация": return Genre.ANIMATION;
-            case "триллер": return Genre.THRILLER;
-            case "документальный": return Genre.DOCUMENTARY;
-            case "боевик": return Genre.ACTION;
-            default: throw new IllegalArgumentException("Неизвестный жанр: " + name);
-        }
-    }
 }
