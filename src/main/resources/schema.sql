@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS  review_interactions (
     FOREIGN KEY (review_id) REFERENCES reviews(review_id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
 -- Таблица для хранения событий
 CREATE TABLE IF NOT EXISTS user_event (
     event_id INTEGER AUTO_INCREMENT PRIMARY KEY,
