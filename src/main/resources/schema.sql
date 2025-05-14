@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS  reviews (
     user_id INT NOT NULL,
     film_id INT NOT NULL,
     useful INT DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (film_id) REFERENCES films(film_id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (film_id) REFERENCES films(id)
 );
 
 CREATE TABLE IF NOT EXISTS  review_interactions (
@@ -73,5 +73,5 @@ CREATE TABLE IF NOT EXISTS  review_interactions (
     interaction_type VARCHAR(10) NOT NULL,
     PRIMARY KEY (review_id, user_id),
     FOREIGN KEY (review_id) REFERENCES reviews(review_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
