@@ -75,3 +75,18 @@ CREATE TABLE IF NOT EXISTS  review_interactions (
     FOREIGN KEY (review_id) REFERENCES reviews(review_id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+-- Таблица режиссеров
+CREATE TABLE IF NOT EXISTS directors (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    CONSTRAINT director_pk PRIMARY KEY (id)
+);
+
+-- Связующая таблица режиссеров
+CREATE TABLE IF NOT EXISTS film_directors (
+    film_id INTEGER NOT NULL,
+    director_id INTEGER NOT NULL,
+    CONSTRAINT film_director_pk PRIMARY KEY (film_id, director_id),
+    CONSTRAINT film_dir_fk FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
+    CONSTRAINT director_fk FOREIGN KEY (director_id) REFERENCES directors(id) ON DELETE CASCADE
+);
