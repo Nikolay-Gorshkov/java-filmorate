@@ -91,5 +91,10 @@ public class FilmController {
                 .map(FilmMapper::toFilmResponse) // Преобразуем каждый Film в FilmResponse
                 .collect(Collectors.toList());
     }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam("userId") int userId, @RequestParam("friendId") int friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
 }
 
