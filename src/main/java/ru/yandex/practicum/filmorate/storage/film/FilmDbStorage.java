@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -7,6 +8,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaaRating;
@@ -14,9 +16,11 @@ import ru.yandex.practicum.filmorate.model.MpaaRating;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Repository("filmDbStorage")
 public class FilmDbStorage implements FilmStorage {
 
@@ -39,6 +43,7 @@ public class FilmDbStorage implements FilmStorage {
         String mpaaEnumStr = mpaaRatingDb.replace("-", "_");
         film.setMpaaRating(MpaaRating.valueOf(mpaaEnumStr));
         film.setGenres(new ArrayList<>(getGenresForFilm(film.getId())));
+        film.setDirectors(getDirectorsForFilm(rs.getInt("id")));
         return film;
     }
 
@@ -58,13 +63,20 @@ public class FilmDbStorage implements FilmStorage {
 
     private Genre mapGenreName(String name) {
         switch (name.toLowerCase()) {
-            case "комедия": return Genre.COMEDY;
-            case "драма": return Genre.DRAMA;
-            case "анимация": return Genre.ANIMATION;
-            case "триллер": return Genre.THRILLER;
-            case "документальный": return Genre.DOCUMENTARY;
-            case "боевик": return Genre.ACTION;
-            default: throw new IllegalArgumentException("Неизвестный жанр: " + name);
+            case "комедия":
+                return Genre.COMEDY;
+            case "драма":
+                return Genre.DRAMA;
+            case "анимация":
+                return Genre.ANIMATION;
+            case "триллер":
+                return Genre.THRILLER;
+            case "документальный":
+                return Genre.DOCUMENTARY;
+            case "боевик":
+                return Genre.ACTION;
+            default:
+                throw new IllegalArgumentException("Неизвестный жанр: " + name);
         }
     }
 
@@ -98,6 +110,10 @@ public class FilmDbStorage implements FilmStorage {
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             saveFilmGenres(film);
         }
+        jdbcTemplate.update("DELETE FROM film_directors WHERE film_id = ?", film.getId());
+        if (!film.getDirectors().isEmpty()) {
+            saveFilmDirectors(film);
+        }
         return film;
     }
 
@@ -113,23 +129,32 @@ public class FilmDbStorage implements FilmStorage {
     public Film updateFilm(Film film) {
         getFilmById(film.getId());
 
-        String sql = "UPDATE films SET name=?, description=?, release_date=?, duration=?, mpaa_rating=? WHERE id=?";
+        String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpaa_rating = ? WHERE id = ?";
         String mpaaToDb = film.getMpaaRating().name().replace("_", "-");
-        jdbcTemplate.update(sql,
+
+        jdbcTemplate.update(
+                sql,
                 film.getName(),
                 film.getDescription(),
                 Date.valueOf(film.getReleaseDate()),
                 film.getDuration(),
                 mpaaToDb,
-                film.getId());
+                film.getId()
+        );
 
-        String deleteGenres = "DELETE FROM film_genres WHERE film_id = ?";
-        jdbcTemplate.update(deleteGenres, film.getId());
-
-        if (film.getGenres() != null) {
+        // Обновление жанров
+        jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", film.getId());
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             saveFilmGenres(film);
         }
-        return film;
+
+        // Обновление режиссеров
+        jdbcTemplate.update("DELETE FROM film_directors WHERE film_id = ?", film.getId());
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            saveFilmDirectors(film);
+        }
+
+        return getFilmById(film.getId());
     }
 
     @Override
@@ -173,5 +198,84 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY likes DESC " +
                 "LIMIT ?";
         return jdbcTemplate.query(sql, this::mapRowToFilm, count);
+    }
+
+    private void saveFilmDirectors(Film film) {
+        String sql = "INSERT INTO film_directors (film_id, director_id) VALUES (?, ?)";
+        jdbcTemplate.batchUpdate(sql, film.getDirectors(), film.getDirectors().size(),
+                (ps, director) -> {
+                    ps.setInt(1, film.getId());
+                    ps.setInt(2, director.getId());
+                });
+    }
+
+    private List<Director> getDirectorsForFilm(int filmId) {
+        String sql = "SELECT d.id AS director_id, d.name "
+                + "FROM film_directors fd "
+                + "JOIN directors d ON d.id = fd.director_id "
+                + "WHERE fd.film_id = ?";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                new Director(
+                        rs.getInt("director_id"),
+                        rs.getString("name")
+                ), filmId);
+    }
+
+    @Override
+    public List<Film> getFilmsByDirector(Integer directorId, String sortBy) {
+        String sql = "SELECT f.*, COUNT(fl.user_id) AS likes "
+                + "FROM films f "
+                + "LEFT JOIN film_likes fl ON f.id = fl.film_id "
+                + "INNER JOIN film_directors fd ON f.id = fd.film_id "
+                + "WHERE fd.director_id = ? "
+                + "GROUP BY f.id "
+                + "ORDER BY " + getOrderClause(sortBy);
+
+        return jdbcTemplate.query(sql, this::mapRowToFilm, directorId);
+    }
+
+    private String getOrderClause(String sortBy) {
+        return switch (sortBy.toLowerCase()) {
+            case "year" -> "f.release_date";
+            case "likes" -> "likes DESC";
+            default -> throw new ValidationException("Недопустимый параметр сортировки: " + sortBy);
+        };
+    }
+
+    @Override
+    public List<Film> searchFilms(String query, List<String> byParams) {
+        if (query == null || query.isBlank()) {
+            throw new ValidationException("Поисковый запрос не может быть пустым");
+        }
+        List<String> conditions = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        String searchPattern = "%" + query.toLowerCase() + "%";
+
+        if (byParams.contains("title")) {
+            conditions.add("LOWER(f.name) LIKE ?");
+            params.add(searchPattern);
+        }
+        if (byParams.contains("director")) {
+            conditions.add("LOWER(d.name) LIKE ?");
+            params.add(searchPattern);
+        }
+
+        if (conditions.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String whereClause = "WHERE " + String.join(" OR ", conditions);
+
+        String sql = "SELECT f.*, COUNT(fl.user_id) AS likes " +
+                "FROM films f " +
+                "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
+                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id " +
+                whereClause +
+                " GROUP BY f.id " +
+                "ORDER BY likes DESC";
+
+        return jdbcTemplate.query(sql, this::mapRowToFilm, params.toArray());
     }
 }

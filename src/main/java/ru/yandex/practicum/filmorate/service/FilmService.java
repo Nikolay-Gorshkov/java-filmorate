@@ -18,11 +18,13 @@ import java.util.List;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final DirectorService directorService;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, UserService userService) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, UserService userService, DirectorService directorService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
+        this.directorService = directorService;
     }
 
     public boolean filmExists(int filmId) {
@@ -115,5 +117,26 @@ public class FilmService {
             }
         }
         return filmStorage.updateFilm(film);
+    }
+
+    public List<Film> getFilmsByDirector(int directorId, String sortBy) {
+        directorService.getDirectorById(directorId); // Проверяем существование режиссера
+        return filmStorage.getFilmsByDirector(directorId, sortBy);
+    }
+
+    public List<Film> searchFilms(String query, List<String> byParams) {
+        validateSearchParams(byParams);
+        return filmStorage.searchFilms(query, byParams);
+    }
+
+    private void validateSearchParams(List<String> byParams) {
+        if (byParams == null || byParams.isEmpty()) {
+            throw new ValidationException("Параметр 'by' обязателен");
+        }
+        for (String param : byParams) {
+            if (!param.equals("title") && !param.equals("director")) {
+                throw new ValidationException("Недопустимое значение параметра 'by': " + param);
+            }
+        }
     }
 }

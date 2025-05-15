@@ -70,5 +70,26 @@ public class FilmController {
         log.info("Создан фильм: {}", createdFilm);
         return FilmMapper.toFilmResponse(createdFilm);
     }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getFilmsByDirector(
+            @PathVariable int directorId,
+            @RequestParam(defaultValue = "likes") String sortBy) {
+
+        log.info("Получение фильмов режиссера {} с сортировкой по {}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<FilmResponse> searchFilms(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "title,director") List<String> by) {
+
+        List<Film> films = filmService.searchFilms(query, by); // Получаем List<Film>
+
+        return films.stream()
+                .map(FilmMapper::toFilmResponse) // Преобразуем каждый Film в FilmResponse
+                .collect(Collectors.toList());
+    }
 }
 
