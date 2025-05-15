@@ -36,11 +36,10 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NO_CONTENT) // Было HttpStatus.OK
     public void deleteReview(@PathVariable Long id) {
         reviewService.deleteReview(id);
     }
-
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public ReviewResponse getReviewById(@PathVariable Long id) {

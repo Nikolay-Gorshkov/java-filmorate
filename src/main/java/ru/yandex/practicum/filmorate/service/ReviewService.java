@@ -84,9 +84,10 @@ public class ReviewService {
     @Transactional
     public void deleteReview(Long reviewId) {
         Review review = reviewStorage.getReviewById(reviewId);
-        if (review != null) {
-            reviewStorage.deleteReview(reviewId);
+        if (review == null) {
+            throw new NotFoundException("Review with id " + reviewId + " not found");
         }
+        reviewStorage.deleteReview(reviewId);
     }
 
     public Review getReviewById(Long reviewId) {

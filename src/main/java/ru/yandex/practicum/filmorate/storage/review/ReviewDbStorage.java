@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.sql.PreparedStatement;
@@ -60,10 +61,20 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public void deleteReview(Long reviewId) {
+        Review review = getReviewById(reviewId);
+        if (review == null) {
+            throw new NotFoundException("Review with id " + reviewId + " not found");
+        }
+        int userId = review.getUserId();
+
         String sql = "DELETE FROM reviews WHERE review_id = ?";
-        jdbcTemplate.update(sql, reviewId);
+        int rowsAffected = jdbcTemplate.update(sql, reviewId);
+        if (rowsAffected == 0) {
+            throw new NotFoundException("Review with id " + reviewId + " not found");
+        }
+
         String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
-        jdbcTemplate.update(insertEventSql, getReviewById(reviewId).getUserId(), "REVIEW", "REMOVE", reviewId);
+        jdbcTemplate.update(insertEventSql, userId, "REVIEW", "REMOVE", reviewId);
     }
 
     @Override
