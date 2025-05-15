@@ -107,6 +107,14 @@ public class UserService {
         return userStorage.getUserById(id);
     }
 
+    public void deleteUser(int userId) {
+        userStorage.deleteUser(userId);
+    }
+
+    public void clearAllUsers() {
+        userStorage.clearAll();
+    }
+
     public List<User> getAllUsers() {
         return userStorage.getAllUsers();
     }

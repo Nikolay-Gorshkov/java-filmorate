@@ -166,6 +166,15 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public void deleteFilm(int filmId) {
+        String sql = "DELETE FROM films WHERE id = ?";
+        int rowsAffected = jdbcTemplate.update(sql, filmId);
+        if (rowsAffected == 0) {
+            throw new NotFoundException("Фильм с id " + filmId + " не найден");
+        }
+    }
+
+    @Override
     public List<Film> getAllFilms() {
         String sql = "SELECT * FROM films";
         return jdbcTemplate.query(sql, this::mapRowToFilm);

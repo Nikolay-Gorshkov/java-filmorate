@@ -73,6 +73,27 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
+    public void deleteUser(int userId) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        int rowsAffected = jdbcTemplate.update(sql, userId);
+        if (rowsAffected == 0) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+
+        String deleteFriendships = "DELETE FROM friendships WHERE user_id = ? OR friend_id = ?";
+        jdbcTemplate.update(deleteFriendships, userId, userId);
+    }
+
+    @Override
+    public void clearAll() {
+        String sqlDeleteFriendships = "DELETE FROM friendships";
+        String sqlDeleteUsers = "DELETE FROM users";
+
+        jdbcTemplate.update(sqlDeleteFriendships);
+        jdbcTemplate.update(sqlDeleteUsers);
+    }
+
+    @Override
     public List<User> getAllUsers() {
         String sql = "SELECT * FROM users";
         return jdbcTemplate.query(sql, this::mapRowToUser);
