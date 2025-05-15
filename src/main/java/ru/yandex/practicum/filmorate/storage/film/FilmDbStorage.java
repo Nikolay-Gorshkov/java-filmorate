@@ -199,7 +199,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getMostPopularFilms(int count) {
+    public List<Film> getPopularFilms(int count) {
         String sql = "SELECT f.*, COUNT(fl.user_id) AS likes " +
                 "FROM films f " +
                 "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
