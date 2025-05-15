@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -68,13 +67,26 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getMostPopularFilms(int count) {
         return films.values().stream()
                 .sorted((f1, f2) -> Integer.compare(
                         filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
                         filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size()))
                 .limit(count)
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    @Override
+    public List<Film> getMostPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        return films.values().stream()
+                .filter(f -> genreId == null || f.getGenres() != null &&
+                        f.getGenres().stream().anyMatch(g -> g.ordinal() + 1 == genreId))
+                .filter(f -> year == null || f.getReleaseDate().getYear() == year)
+                .sorted((f1, f2) -> Integer.compare(
+                        filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
+                        filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size()))
+                .limit(count)
+                .toList();
     }
 
     private void validateFilm(Film film) {

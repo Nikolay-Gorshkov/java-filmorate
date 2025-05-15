@@ -52,6 +52,18 @@ public class FilmController {
         log.info("Фильм с id {} удален", id);
     }
 
+    @GetMapping("/popular")
+    public List<FilmResponse> getMostPopularFilms(
+            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(required = false) Integer genreId,
+            @RequestParam(required = false) Integer year) {
+
+        List<Film> films = filmService.getMostPopularFilmsByGenreAndYear(count, genreId, year);
+        return films.stream()
+                .map(FilmMapper::toFilmResponse)
+                .collect(Collectors.toList());
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable int id, @PathVariable int userId) {
         filmService.addLike(id, userId);
@@ -62,11 +74,6 @@ public class FilmController {
     public void removeLike(@PathVariable int id, @PathVariable int userId) {
         filmService.removeLike(id, userId);
         log.info("Пользователь {} удалил лайк с фильма {}", userId, id);
-    }
-
-    @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return filmService.getPopularFilms(count);
     }
 
     @PostMapping
