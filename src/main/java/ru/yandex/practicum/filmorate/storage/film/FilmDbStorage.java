@@ -295,4 +295,41 @@ public class FilmDbStorage implements FilmStorage {
         });
         return commonFilms;
     }
+
+    @Override
+    public List<Film> getFilmsByIds(List<Integer> ids) {
+        if (ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
+        String sql = "SELECT * FROM films WHERE id IN (" + inSql + ")";
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Film film = new Film();
+            film.setId(rs.getInt("id"));
+            film.setName(rs.getString("name"));
+            film.setDescription(rs.getString("description"));
+            film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+            film.setDuration(rs.getInt("duration"));
+            String mpaaRatingDb = rs.getString("mpaa_rating");
+            String mpaaEnumStr = mpaaRatingDb.replace("-", "_");
+            film.setMpaaRating(MpaaRating.valueOf(mpaaEnumStr));
+            return film;
+        }, ids.toArray());
+
+        // Получение жанров
+        String sqlGenres = "SELECT fg.film_id, g.name FROM film_genres fg JOIN genres g ON fg.genre_id = g.id WHERE fg.film_id IN (" + inSql + ")";
+        List<Map<String, Object>> genreRows = jdbcTemplate.queryForList(sqlGenres, ids.toArray());
+        Map<Integer, List<Genre>> genresMap = new HashMap<>();
+        for (Map<String, Object> row : genreRows) {
+            int filmId = (int) row.get("film_id");
+            String genreName = (String) row.get("name");
+            Genre genre = mapGenreName(genreName);
+            genresMap.computeIfAbsent(filmId, k -> new ArrayList<>()).add(genre);
+        }
+        // Установка жанров фильмам
+        for (Film film : films) {
+            film.setGenres(genresMap.getOrDefault(film.getId(), Collections.emptyList()));
+        }
+        return films;
+    }
 }

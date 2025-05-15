@@ -124,4 +124,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getCommonFilms(int userId, int friendId) {
         return List.of();
     }
+
+    @Override
+    public List<Film> getFilmsByIds(List<Integer> ids) {
+        return ids.stream()
+                .filter(films::containsKey)
+                .map(films::get)
+                .collect(Collectors.toList());
+    }
 }
