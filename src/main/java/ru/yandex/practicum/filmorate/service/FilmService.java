@@ -50,7 +50,7 @@ public class FilmService {
     }
 
     public List<Film> getMostPopularFilms(int count) {
-        return filmStorage.getMostPopularFilms(count);
+        return filmStorage.getPopularFilms(count);
     }
 
     public List<Film> getMostPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
