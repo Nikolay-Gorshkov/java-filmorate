@@ -90,3 +90,17 @@ CREATE TABLE IF NOT EXISTS film_directors (
     CONSTRAINT film_dir_fk FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
     CONSTRAINT director_fk FOREIGN KEY (director_id) REFERENCES directors(id) ON DELETE CASCADE
 );
+
+
+-- Таблица для хранения событий
+CREATE TABLE IF NOT EXISTS user_event (
+    event_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    event_type VARCHAR(10) NOT NULL,
+    operation VARCHAR(10) NOT NULL,
+    entity_id BIGINT NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT chk_event_type CHECK (event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
+    CONSTRAINT chk_operation CHECK (operation IN ('ADD', 'REMOVE', 'UPDATE'))
+);

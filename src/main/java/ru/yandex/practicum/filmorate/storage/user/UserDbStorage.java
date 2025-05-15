@@ -6,6 +6,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.*;
@@ -94,6 +95,9 @@ public class UserDbStorage implements UserStorage {
             String insertSql = "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, ?)";
             jdbcTemplate.update(insertSql, userId, friendId, "UNCONFIRMED");
         }
+
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, userId, "FRIEND", "ADD", friendId);
     }
 
     @Override
@@ -102,6 +106,8 @@ public class UserDbStorage implements UserStorage {
         getUserById(friendId);
         String sql = "DELETE FROM friendships WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sql, userId, friendId);
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, userId, "FRIEND", "REMOVE", friendId);
     }
 
     @Override
@@ -121,6 +127,22 @@ public class UserDbStorage implements UserStorage {
                 "JOIN friendships f1 ON u.id = f1.friend_id AND f1.user_id = ? " +
                 "JOIN friendships f2 ON u.id = f2.friend_id AND f2.user_id = ?";
         return jdbcTemplate.query(sql, this::mapRowToUser, userId, otherId);
+    }
+
+    @Override
+    public List<Event> getFeed(int userId) {
+        String sql = "SELECT * FROM user_event WHERE user_id = ? ORDER BY timestamp DESC";
+        List<Event> events = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Event event = new Event();
+            event.setEventId(rs.getInt("event_id"));
+            event.setUserId(rs.getInt("user_id"));
+            event.setEventType(rs.getString("event_type"));
+            event.setOperation(rs.getString("operation"));
+            event.setEntityId(rs.getInt("entity_id"));
+            event.setTimestamp(rs.getTimestamp("timestamp"));
+            return event;
+        }, userId);
+        return events;
     }
 }
 

@@ -43,6 +43,8 @@ public class ReviewDbStorage implements ReviewStorage {
         }, keyHolder);
 
         review.setReviewId(keyHolder.getKey().longValue());
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, review.getUserId(), "REVIEW", "ADD", review.getReviewId());
         return review;
     }
 
@@ -51,6 +53,8 @@ public class ReviewDbStorage implements ReviewStorage {
     public Review updateReview(Review review) {
         String sql = "UPDATE reviews SET content = ?, is_positive = ? WHERE review_id = ?";
         jdbcTemplate.update(sql, review.getContent(), review.getIsPositive(), review.getReviewId());
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, review.getUserId(), "REVIEW", "UPDATE", review.getReviewId());
         return review;
     }
 
@@ -58,6 +62,8 @@ public class ReviewDbStorage implements ReviewStorage {
     public void deleteReview(Long reviewId) {
         String sql = "DELETE FROM reviews WHERE review_id = ?";
         jdbcTemplate.update(sql, reviewId);
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, getReviewById(reviewId).getUserId(), "REVIEW", "REMOVE", reviewId);
     }
 
     @Override
