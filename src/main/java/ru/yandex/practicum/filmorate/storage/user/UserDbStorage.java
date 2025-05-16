@@ -36,16 +36,22 @@ public class UserDbStorage implements UserStorage {
     public User createUser(User user) {
         String sql = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        String name = (user.getName() == null || user.getName().isBlank())
+                ? user.getLogin()
+                : user.getName();
+
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getEmail());
             ps.setString(2, user.getLogin());
-            // Если имя не задано, используем логин
-            ps.setString(3, (user.getName() == null || user.getName().isBlank()) ? user.getLogin() : user.getName());
+            ps.setString(3, name); // Используем переменную name
             ps.setDate(4, Date.valueOf(user.getBirthday()));
             return ps;
         }, keyHolder);
+
         user.setId(keyHolder.getKey().intValue());
+        user.setName(name); // Обновляем поле name
         return user;
     }
 
@@ -53,12 +59,19 @@ public class UserDbStorage implements UserStorage {
     public User updateUser(User user) {
         getUserById(user.getId());
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
+
+        String name = (user.getName() == null || user.getName().isBlank())
+                ? user.getLogin()
+                : user.getName();
+
         jdbcTemplate.update(sql,
                 user.getEmail(),
                 user.getLogin(),
-                (user.getName() == null || user.getName().isBlank()) ? user.getLogin() : user.getName(),
+                name,
                 Date.valueOf(user.getBirthday()),
                 user.getId());
+
+        user.setName(name); // Обновляем поле name
         return user;
     }
 

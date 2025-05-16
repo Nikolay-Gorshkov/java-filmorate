@@ -104,3 +104,9 @@ CREATE TABLE IF NOT EXISTS user_event (
     CONSTRAINT chk_event_type CHECK (event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
     CONSTRAINT chk_operation CHECK (operation IN ('ADD', 'REMOVE', 'UPDATE'))
 );
+
+CREATE TABLE IF NOT EXISTS mpa (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    name VARCHAR(10) NOT NULL UNIQUE,
+    CONSTRAINT mpa_pk PRIMARY KEY (id)
+);
