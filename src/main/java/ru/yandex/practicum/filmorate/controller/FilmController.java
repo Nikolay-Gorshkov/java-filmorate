@@ -111,8 +111,13 @@ public class FilmController {
     }
 
     @GetMapping("/common")
-    public List<Film> getCommonFilms(@RequestParam("userId") int userId, @RequestParam("friendId") int friendId) {
-        return filmService.getCommonFilms(userId, friendId);
+    public List<FilmResponse> getCommonFilms(@RequestParam("userId") int userId, @RequestParam("friendId") int friendId) {
+
+        List<Film> films = filmService.getCommonFilms(userId, friendId);
+
+        return films.stream()
+                .map(FilmMapper::toFilmResponse)
+                .collect(Collectors.toList());
     }
 }
 

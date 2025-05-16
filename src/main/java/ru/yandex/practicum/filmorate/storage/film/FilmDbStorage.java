@@ -299,21 +299,15 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        String sql = "SELECT f.*, COUNT(fl.film_id) AS popularity " +
+        String sql = "SELECT f.*, COUNT(DISTINCT fl.user_id) AS popularity " +
                 "FROM films f " +
                 "JOIN film_likes fl ON f.id = fl.film_id " +
-                "JOIN film_genres fg ON f.id = fg.film_id " +
-                "JOIN genres g ON fg.genre_id = g.id " +
                 "WHERE fl.user_id IN (?, ?) " +
                 "GROUP BY f.id " +
                 "HAVING COUNT(DISTINCT fl.user_id) = 2 " +
                 "ORDER BY popularity DESC";
 
-        List<Film> commonFilms = jdbcTemplate.query(sql, new Object[]{userId, friendId}, this::mapRowToFilm);
-        commonFilms.forEach(film -> {
-            film.setGenres(getGenresForFilm(film.getId()));
-        });
-        return commonFilms;
+        return jdbcTemplate.query(sql, this::mapRowToFilm, userId, friendId);
     }
 
     @Override
