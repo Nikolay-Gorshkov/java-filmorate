@@ -135,7 +135,11 @@ public class UserService {
         return userStorage.getCommonFriends(userId, otherId);
     }
 
-    public List<Event> getFeed(int id) {
-        return userStorage.getFeed(id);
+    public List<Event> getFeed(int userId) {
+        User user = userStorage.getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+        return userStorage.getFeed(userId);
     }
 }
