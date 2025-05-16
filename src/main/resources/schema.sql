@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS  review_interactions (
     user_id INT NOT NULL,
     interaction_type VARCHAR(10) NOT NULL,
     PRIMARY KEY (review_id, user_id),
-    FOREIGN KEY (review_id) REFERENCES reviews(review_id),
+    FOREIGN KEY (review_id) REFERENCES reviews(review_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 -- Таблица режиссеров
