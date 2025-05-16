@@ -129,7 +129,7 @@ public class FilmService {
     }
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
-        directorService.getDirectorById(directorId); // Проверяем существование режиссера
+        directorService.getDirectorById(directorId);
         return filmStorage.getFilmsByDirector(directorId, sortBy);
     }
 

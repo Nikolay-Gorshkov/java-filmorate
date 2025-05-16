@@ -1,13 +1,18 @@
 package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import ru.yandex.practicum.filmorate.DTO.GenreDTO;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Film {
     private static final int MAX_DESCRIPTION_LENGTH = 200;
 
@@ -31,19 +36,4 @@ public class Film {
     private MpaaRating mpaaRating;
 
     private List<Director> directors = new ArrayList<>();
-
-    public Film() {
-    }
-
-    public Film(final int id, final String name, final String description, final LocalDate releaseDate, final int duration,
-                List<Genre> genres, MpaaRating mpaaRating, List<Director> directors) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-        this.genres = genres != null ? genres : new ArrayList<>();
-        this.mpaaRating = mpaaRating;
-        this.directors = directors != null ? directors : new ArrayList<>();
-    }
 }

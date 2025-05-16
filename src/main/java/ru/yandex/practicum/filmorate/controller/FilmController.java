@@ -85,12 +85,15 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<Film> getFilmsByDirector(
+    public List<FilmResponse> getFilmsByDirector(
             @PathVariable int directorId,
             @RequestParam(defaultValue = "likes") String sortBy) {
 
         log.info("Получение фильмов режиссера {} с сортировкой по {}", directorId, sortBy);
-        return filmService.getFilmsByDirector(directorId, sortBy);
+        List<Film> films = filmService.getFilmsByDirector(directorId, sortBy);
+        return films.stream()
+                .map(FilmMapper::toFilmResponse)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/search")

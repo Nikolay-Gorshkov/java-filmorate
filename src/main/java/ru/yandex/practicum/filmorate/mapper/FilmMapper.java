@@ -59,13 +59,10 @@ public class FilmMapper {
         mpaDTO.setName(film.getMpaaRating().name().replace("_", "-"));
         dto.setMpa(mpaDTO);
 
-        List<GenreDTO> genreList = film.getGenres().stream().map(genre -> {
-            GenreDTO genreDTO = new GenreDTO();
-            genreDTO.setId(genre.ordinal() + 1);
-            genreDTO.setName(getGenreNameRu(genre));
-            return genreDTO;
-        }).collect(Collectors.toList());
-        dto.setGenres(genreList);
+        List<GenreDTO> genreDTOs = film.getGenres().stream()
+                .map(genre -> new GenreDTO(genre.ordinal() + 1, getGenreNameRu(genre)))
+                .collect(Collectors.toList());
+        dto.setGenres(genreDTOs);
 
         List<DirectorResponse> directorResponses = film.getDirectors().stream()
                 .map(DirectorMapper::toDirectorResponse)
@@ -120,23 +117,13 @@ public class FilmMapper {
     }
 
     private static String getGenreNameRu(Genre genre) {
-        switch (genre) {
-            case COMEDY:
-                return "Комедия";
-            case DRAMA:
-                return "Драма";
-            case ANIMATION:
-                return "Мультфильм";
-            case THRILLER:
-                return "Триллер";
-            case DOCUMENTARY:
-                return "Документальный";
-            case ACTION:
-                return "Боевик";
-            default:
-                return genre.name();
-        }
+        return switch (genre) {
+            case COMEDY -> "Комедия";
+            case DRAMA -> "Драма";
+            case ANIMATION -> "Мультфильм";
+            case THRILLER -> "Триллер";
+            case DOCUMENTARY -> "Документальный";
+            case ACTION -> "Боевик";
+        };
     }
-
-
 }

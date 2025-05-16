@@ -7,8 +7,11 @@ import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.DTO.FilmResponse;
+import ru.yandex.practicum.filmorate.DTO.GenreDTO;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -18,6 +21,7 @@ import java.sql.*;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository("filmDbStorage")
@@ -47,17 +51,23 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private List<Genre> getGenresForFilm(int filmId) {
-        String sql = "SELECT g.id, g.name " +
-                "FROM film_genres fg " +
-                "JOIN genres g ON g.id = fg.genre_id " +
-                "WHERE fg.film_id = ? " +
-                "ORDER BY g.id";  // сортируем по id жанра
-
+        String sql = "SELECT genre_id FROM film_genres WHERE film_id = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            int genreId = rs.getInt("id");
-            String genreName = rs.getString("name");
-            return mapGenreName(genreName);
+            int genreId = rs.getInt("genre_id");
+            return mapGenreById(genreId); // Преобразуем ID в enum Genre
         }, filmId);
+    }
+
+    private Genre mapGenreById(int genreId) {
+        return switch (genreId) {
+            case 1 -> Genre.COMEDY;
+            case 2 -> Genre.DRAMA;
+            case 3 -> Genre.ANIMATION;
+            case 4 -> Genre.THRILLER;
+            case 5 -> Genre.DOCUMENTARY;
+            case 6 -> Genre.ACTION;
+            default -> throw new IllegalArgumentException("Unknown genre ID: " + genreId);
+        };
     }
 
     private Genre mapGenreName(String name) {
@@ -78,7 +88,6 @@ public class FilmDbStorage implements FilmStorage {
                 throw new IllegalArgumentException("Неизвестный жанр: " + name);
         }
     }
-
 
     @Override
     public Film addFilm(Film film) {
