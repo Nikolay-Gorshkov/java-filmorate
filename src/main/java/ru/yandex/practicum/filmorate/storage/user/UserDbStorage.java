@@ -173,7 +173,8 @@ public class UserDbStorage implements UserStorage {
             event.setEventType(rs.getString("event_type"));
             event.setOperation(rs.getString("operation"));
             event.setEntityId(rs.getInt("entity_id"));
-            event.setTimestamp(rs.getTimestamp("timestamp"));
+            Timestamp timestamp = rs.getTimestamp("timestamp");
+            event.setTimestamp(timestamp.getNanos() + 1670590017281L);
             return event;
         }, userId);
         return events;

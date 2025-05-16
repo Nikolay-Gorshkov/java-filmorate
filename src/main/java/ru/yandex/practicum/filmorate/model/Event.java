@@ -14,6 +14,6 @@ public class Event {
     private String eventType;
     private String operation;
     private int entityId;
-    private Timestamp timestamp;
+    private long timestamp;
 
 }
