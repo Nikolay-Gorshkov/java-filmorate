@@ -165,19 +165,17 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<Event> getFeed(int userId) {
-        String sql = "SELECT * FROM user_event WHERE user_id = ? ORDER BY timestamp DESC";
-        List<Event> events = jdbcTemplate.query(sql, (rs, rowNum) -> {
+        String sql = "SELECT * FROM user_event WHERE user_id = ? ORDER BY timestamp DESC, event_id DESC";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Event event = new Event();
             event.setEventId(rs.getInt("event_id"));
             event.setUserId(rs.getInt("user_id"));
             event.setEventType(rs.getString("event_type"));
             event.setOperation(rs.getString("operation"));
             event.setEntityId(rs.getInt("entity_id"));
-            Timestamp timestamp = rs.getTimestamp("timestamp");
-            event.setTimestamp(timestamp.getNanos() + 1670590017281L);
+            event.setTimestamp(rs.getTimestamp("timestamp").getTime());
             return event;
         }, userId);
-        return events;
     }
 }
 

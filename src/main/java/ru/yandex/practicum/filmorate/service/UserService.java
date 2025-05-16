@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -38,14 +38,14 @@ public class UserService {
 
         // Поиск похожих пользователей
         String sqlSimilarUsers = """
-        SELECT fl2.user_id, COUNT(*) as common_likes
-        FROM film_likes fl1
-        JOIN film_likes fl2 ON fl1.film_id = fl2.film_id AND fl1.user_id != fl2.user_id
-        WHERE fl1.user_id = ?
-        GROUP BY fl2.user_id
-        ORDER BY common_likes DESC
-        LIMIT ?
-    """;
+                    SELECT fl2.user_id, COUNT(*) as common_likes
+                    FROM film_likes fl1
+                    JOIN film_likes fl2 ON fl1.film_id = fl2.film_id AND fl1.user_id != fl2.user_id
+                    WHERE fl1.user_id = ?
+                    GROUP BY fl2.user_id
+                    ORDER BY common_likes DESC
+                    LIMIT ?
+                """;
         List<Integer> similarUsers = jdbcTemplate.query(sqlSimilarUsers, (rs, rowNum) -> rs.getInt("user_id"), userId, nSimilarUsers);
 
         // Получение лайкнутых фильмов пользователя
@@ -54,14 +54,14 @@ public class UserService {
 
         // Получение ID рекомендованных фильмов
         String sqlRecommendedFilmIds = """
-        SELECT fl.film_id, COUNT(*) as like_count
-        FROM film_likes fl
-        WHERE fl.user_id IN (%s)
-        AND fl.film_id NOT IN (%s)
-        GROUP BY fl.film_id
-        ORDER BY like_count DESC
-        LIMIT ?
-    """;
+                    SELECT fl.film_id, COUNT(*) as like_count
+                    FROM film_likes fl
+                    WHERE fl.user_id IN (%s)
+                    AND fl.film_id NOT IN (%s)
+                    GROUP BY fl.film_id
+                    ORDER BY like_count DESC
+                    LIMIT ?
+                """;
         String similarUsersIn = similarUsers.stream().map(String::valueOf).collect(Collectors.joining(","));
         String likedFilmsIn = likedFilms.stream().map(String::valueOf).collect(Collectors.joining(","));
         if (similarUsers.isEmpty()) {

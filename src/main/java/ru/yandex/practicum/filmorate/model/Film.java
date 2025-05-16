@@ -4,7 +4,6 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.yandex.practicum.filmorate.DTO.GenreDTO;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
