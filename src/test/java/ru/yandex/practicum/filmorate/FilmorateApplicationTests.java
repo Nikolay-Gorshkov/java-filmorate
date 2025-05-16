@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.jdbc.Sql;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
@@ -19,6 +20,7 @@ class FilmorateApplicationTests {
     private final UserDbStorage userStorage;
 
     @Test
+    @Sql("/test-data.sql")
     public void testFindUserById() {
         User user = userStorage.getUserById(1);
 
