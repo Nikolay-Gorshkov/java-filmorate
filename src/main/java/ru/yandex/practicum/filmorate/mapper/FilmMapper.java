@@ -53,7 +53,6 @@ public class FilmMapper {
         dto.setReleaseDate(film.getReleaseDate().toString());
         dto.setDuration(film.getDuration());
 
-        // Используем вынесенные классы MpaDTO и GenreDTO
         MpaDTO mpaDTO = new MpaDTO();
         mpaDTO.setId(film.getMpaaRating().ordinal() + 1);
         mpaDTO.setName(film.getMpaaRating().name().replace("_", "-"));
