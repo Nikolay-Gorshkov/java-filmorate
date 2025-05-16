@@ -90,7 +90,9 @@ public class FilmController {
             @RequestParam(defaultValue = "likes") String sortBy) {
 
         log.info("Получение фильмов режиссера {} с сортировкой по {}", directorId, sortBy);
+
         List<Film> films = filmService.getFilmsByDirector(directorId, sortBy);
+
         return films.stream()
                 .map(FilmMapper::toFilmResponse)
                 .collect(Collectors.toList());
@@ -101,10 +103,10 @@ public class FilmController {
             @RequestParam String query,
             @RequestParam(defaultValue = "title,director") List<String> by) {
 
-        List<Film> films = filmService.searchFilms(query, by); // Получаем List<Film>
+        List<Film> films = filmService.searchFilms(query, by);
 
         return films.stream()
-                .map(FilmMapper::toFilmResponse) // Преобразуем каждый Film в FilmResponse
+                .map(FilmMapper::toFilmResponse)
                 .collect(Collectors.toList());
     }
 
