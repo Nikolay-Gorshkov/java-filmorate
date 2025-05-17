@@ -134,7 +134,7 @@ public class ReviewService {
     }
 
     private void checkUserExists(int userId) {
-        if (userService.getUserById(userId) == null){
+        if (userService.getUserById(userId) == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
     }
