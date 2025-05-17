@@ -259,9 +259,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> searchFilms(String query, List<String> byParams) {
-        if (query == null || query.isBlank()) {
-            throw new ValidationException("Поисковый запрос не может быть пустым");
-        }
         List<String> conditions = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         String searchPattern = "%" + query.toLowerCase() + "%";
@@ -275,10 +272,7 @@ public class FilmDbStorage implements FilmStorage {
             params.add(searchPattern);
         }
 
-        if (conditions.isEmpty()) {
-            return Collections.emptyList();
-        }
-
+        // Предполагаем, что byParams уже валидирован в сервисе
         String whereClause = "WHERE " + String.join(" OR ", conditions);
 
         String sql = "SELECT f.*, COUNT(fl.user_id) AS likes " +

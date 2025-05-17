@@ -129,12 +129,25 @@ public class FilmService {
     }
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
+        if (!sortBy.equalsIgnoreCase("year") && !sortBy.equalsIgnoreCase("likes")) {
+            throw new ValidationException("Недопустимый параметр сортировки: " + sortBy);
+        }
         directorService.getDirectorById(directorId);
         return filmStorage.getFilmsByDirector(directorId, sortBy);
     }
 
     public List<Film> searchFilms(String query, List<String> byParams) {
-        validateSearchParams(byParams);
+        if (byParams == null || byParams.isEmpty()) {
+            throw new ValidationException("Параметр 'by' обязателен");
+        }
+        for (String param : byParams) {
+            if (!param.equals("title") && !param.equals("director")) {
+                throw new ValidationException("Недопустимое значение параметра 'by': " + param);
+            }
+        }
+        if (query == null || query.isBlank()) {
+            throw new ValidationException("Запрос поиска не может быть пустым");
+        }
         return filmStorage.searchFilms(query, byParams);
     }
 
@@ -157,5 +170,11 @@ public class FilmService {
         userService.getUserById(friendId);
         List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
         return commonFilms != null ? commonFilms : Collections.emptyList();
+    }
+
+    private void validateSortBy(String sortBy) {
+        if (!sortBy.equalsIgnoreCase("year") && !sortBy.equalsIgnoreCase("likes")) {
+            throw new ValidationException("Недопустимый параметр сортировки: " + sortBy);
+        }
     }
 }

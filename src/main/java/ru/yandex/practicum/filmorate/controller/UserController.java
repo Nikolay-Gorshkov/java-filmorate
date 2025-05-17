@@ -99,12 +99,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/feed")
-    public ResponseEntity<List<Event>> getFeed(@PathVariable int id) {
-        try {
-            List<Event> feed = userService.getFeed(id);
-            return ResponseEntity.ok(feed); // 200 OK, если все хорошо
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // 404, если пользователь не найден
-        }
+    public List<Event> getFeed(@PathVariable int id) {
+        return userService.getFeed(id);
     }
 }

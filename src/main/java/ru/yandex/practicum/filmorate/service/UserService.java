@@ -86,15 +86,6 @@ public class UserService {
         return orderedRecommendedFilms;
     }
 
-    public boolean userExists(int userId) {
-        try {
-            getUserById(userId);
-            return true;
-        } catch (NotFoundException e) {
-            return false;
-        }
-    }
-
     public User createUser(User user) {
         return userStorage.createUser(user);
     }
@@ -104,8 +95,13 @@ public class UserService {
     }
 
     public User getUserById(int id) {
-        return userStorage.getUserById(id);
+        User user = userStorage.getUserById(id);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с ID " + id + " не найден");
+        }
+        return user;
     }
+
 
     public void deleteUser(int userId) {
         userStorage.deleteUser(userId);
@@ -136,10 +132,6 @@ public class UserService {
     }
 
     public List<Event> getFeed(int userId) {
-        User user = userStorage.getUserById(userId);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        }
         return userStorage.getFeed(userId);
     }
 }

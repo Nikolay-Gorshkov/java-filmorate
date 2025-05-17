@@ -92,9 +92,6 @@ public class UserDbStorage implements UserStorage {
         if (rowsAffected == 0) {
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
-
-        String deleteFriendships = "DELETE FROM friendships WHERE user_id = ? OR friend_id = ?";
-        jdbcTemplate.update(deleteFriendships, userId, userId);
     }
 
     @Override
