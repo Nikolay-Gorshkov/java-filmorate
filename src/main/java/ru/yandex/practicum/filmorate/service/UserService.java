@@ -132,6 +132,10 @@ public class UserService {
     }
 
     public List<Event> getFeed(int userId) {
+        User user = userStorage.getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
         return userStorage.getFeed(userId);
     }
 }
