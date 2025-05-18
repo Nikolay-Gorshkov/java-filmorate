@@ -44,6 +44,15 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public void deleteFilm(int filmId) {
+        if (!films.containsKey(filmId)) {
+            throw new NotFoundException("Фильм с id " + filmId + " не найден");
+        }
+        films.remove(filmId);
+        filmLikes.remove(filmId);
+    }
+
+    @Override
     public List<Film> getAllFilms() {
         return new ArrayList<>(films.values());
     }
@@ -65,12 +74,84 @@ public class InMemoryFilmStorage implements FilmStorage {
                         filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
                         filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size()))
                 .limit(count)
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    @Override
+    public List<Film> getMostPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        return films.values().stream()
+                .filter(f -> genreId == null || f.getGenres() != null &&
+                        f.getGenres().stream().anyMatch(g -> g.ordinal() + 1 == genreId))
+                .filter(f -> year == null || f.getReleaseDate().getYear() == year)
+                .sorted((f1, f2) -> Integer.compare(
+                        filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
+                        filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size()))
+                .limit(count)
+                .toList();
     }
 
     private void validateFilm(Film film) {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
+    }
+
+    @Override
+    public List<Film> getFilmsByDirector(Integer directorId, String sortBy) {
+        List<Film> directorFilms = films.values().stream()
+                .filter(f -> f.getDirectors().stream()
+                        .anyMatch(d -> d.getId() == directorId))
+                .collect(Collectors.toList());
+
+        switch (sortBy.toLowerCase()) {
+            case "year":
+                directorFilms.sort(Comparator.comparing(Film::getReleaseDate));
+                break;
+            case "likes":
+                directorFilms.sort((f1, f2) -> Integer.compare(
+                        filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
+                        filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size()
+                ));
+                break;
+            default:
+                throw new ValidationException("Недопустимый параметр сортировки: " + sortBy);
+        }
+
+        return directorFilms;
+    }
+
+    @Override
+    public List<Film> searchFilms(String query, List<String> byParams) {
+        String searchQuery = query.toLowerCase();
+
+        return films.values().stream()
+                .filter(film -> {
+                    boolean matchesTitle = byParams.contains("title")
+                            && film.getName().toLowerCase().contains(searchQuery);
+
+                    boolean matchesDirector = byParams.contains("director")
+                            && film.getDirectors().stream()
+                            .anyMatch(d -> d.getName().toLowerCase().contains(searchQuery));
+
+                    return matchesTitle || matchesDirector;
+                })
+                .sorted((f1, f2) -> Integer.compare(
+                        filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
+                        filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return List.of();
+    }
+
+    @Override
+    public List<Film> getFilmsByIds(List<Integer> ids) {
+        return ids.stream()
+                .filter(films::containsKey)
+                .map(films::get)
+                .collect(Collectors.toList());
     }
 }

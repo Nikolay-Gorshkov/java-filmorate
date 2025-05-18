@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.user;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -38,6 +39,22 @@ public class InMemoryUserStorage implements UserStorage {
     public User getUserById(int id) {
         validateUser(id);
         return users.get(id);
+    }
+
+    @Override
+    public void deleteUser(int userId) {
+        if (!users.containsKey(userId)) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+        users.remove(userId);
+        userFriends.remove(userId);
+        userFriends.forEach((id, friends) -> friends.keySet().remove(userId));
+    }
+
+    @Override
+    public void clearAll() {
+        users.clear();
+        userIdCounter = 0;
     }
 
     @Override
@@ -110,6 +127,11 @@ public class InMemoryUserStorage implements UserStorage {
                 .map(users::get)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Event> getFeed(int userId) {
+        return List.of();
     }
 
     private void validateUser(int id) {

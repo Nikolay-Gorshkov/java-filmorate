@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.DTO.MpaDTO;
 import ru.yandex.practicum.filmorate.service.MpaService;
+
 import java.util.List;
 
 @RestController

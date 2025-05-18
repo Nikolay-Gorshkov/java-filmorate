@@ -4,7 +4,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.MpaaRating;
-import ru.yandex.practicum.filmorate.storage.Mpa.MpaStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

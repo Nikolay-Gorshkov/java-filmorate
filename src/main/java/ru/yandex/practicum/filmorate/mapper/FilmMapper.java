@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.mapper;
 
-import ru.yandex.practicum.filmorate.DTO.FilmRequest;
-import ru.yandex.practicum.filmorate.DTO.FilmResponse;
-import ru.yandex.practicum.filmorate.DTO.MpaDTO;
-import ru.yandex.practicum.filmorate.DTO.GenreDTO;
+import ru.yandex.practicum.filmorate.DTO.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaaRating;
@@ -36,6 +34,14 @@ public class FilmMapper {
                     .collect(Collectors.toList());
             film.setGenres(genreList);
         }
+
+        if (dto.getDirectors() != null) {
+            List<Director> directors = dto.getDirectors().stream()
+                    .map(DirectorMapper::toDirector)
+                    .collect(Collectors.toList());
+            film.setDirectors(directors);
+        }
+
         return film;
     }
 
@@ -47,19 +53,20 @@ public class FilmMapper {
         dto.setReleaseDate(film.getReleaseDate().toString());
         dto.setDuration(film.getDuration());
 
-        // Используем вынесенные классы MpaDTO и GenreDTO
         MpaDTO mpaDTO = new MpaDTO();
         mpaDTO.setId(film.getMpaaRating().ordinal() + 1);
         mpaDTO.setName(film.getMpaaRating().name().replace("_", "-"));
         dto.setMpa(mpaDTO);
 
-        List<GenreDTO> genreList = film.getGenres().stream().map(genre -> {
-            GenreDTO genreDTO = new GenreDTO();
-            genreDTO.setId(genre.ordinal() + 1);
-            genreDTO.setName(getGenreNameRu(genre));
-            return genreDTO;
-        }).collect(Collectors.toList());
-        dto.setGenres(genreList);
+        List<GenreDTO> genreDTOs = film.getGenres().stream()
+                .map(genre -> new GenreDTO(genre.ordinal() + 1, getGenreNameRu(genre)))
+                .collect(Collectors.toList());
+        dto.setGenres(genreDTOs);
+
+        List<DirectorResponse> directorResponses = film.getDirectors().stream()
+                .map(DirectorMapper::toDirectorResponse)
+                .collect(Collectors.toList());
+        dto.setDirectors(directorResponses);
         return dto;
     }
 
@@ -73,11 +80,16 @@ public class FilmMapper {
         }
         if (id >= 1 && id <= 5) {
             switch (id) {
-                case 1: return MpaaRating.G;
-                case 2: return MpaaRating.PG;
-                case 3: return MpaaRating.PG_13;
-                case 4: return MpaaRating.R;
-                case 5: return MpaaRating.NC_17;
+                case 1:
+                    return MpaaRating.G;
+                case 2:
+                    return MpaaRating.PG;
+                case 3:
+                    return MpaaRating.PG_13;
+                case 4:
+                    return MpaaRating.R;
+                case 5:
+                    return MpaaRating.NC_17;
             }
         }
         throw new NotFoundException("Некорректный MPAA рейтинг: " + id);
@@ -86,26 +98,31 @@ public class FilmMapper {
     private static Genre parseGenre(int id, String name) {
         if (id >= 1 && id <= 6) {
             switch (id) {
-                case 1: return Genre.COMEDY;
-                case 2: return Genre.DRAMA;
-                case 3: return Genre.ANIMATION;
-                case 4: return Genre.THRILLER;
-                case 5: return Genre.DOCUMENTARY;
-                case 6: return Genre.ACTION;
+                case 1:
+                    return Genre.COMEDY;
+                case 2:
+                    return Genre.DRAMA;
+                case 3:
+                    return Genre.ANIMATION;
+                case 4:
+                    return Genre.THRILLER;
+                case 5:
+                    return Genre.DOCUMENTARY;
+                case 6:
+                    return Genre.ACTION;
             }
         }
         throw new NotFoundException("Некорректный жанр: " + id);
     }
 
     private static String getGenreNameRu(Genre genre) {
-        switch (genre) {
-            case COMEDY: return "Комедия";
-            case DRAMA: return "Драма";
-            case ANIMATION: return "Мультфильм";
-            case THRILLER: return "Триллер";
-            case DOCUMENTARY: return "Документальный";
-            case ACTION: return "Боевик";
-            default: return genre.name();
-        }
+        return switch (genre) {
+            case COMEDY -> "Комедия";
+            case DRAMA -> "Драма";
+            case ANIMATION -> "Мультфильм";
+            case THRILLER -> "Триллер";
+            case DOCUMENTARY -> "Документальный";
+            case ACTION -> "Боевик";
+        };
     }
 }

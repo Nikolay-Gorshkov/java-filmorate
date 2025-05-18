@@ -1,9 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.genre;
 
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Genre;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Genre;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -18,7 +19,7 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public List<Genre> getAllGenres() {
-        String sql = "SELECT * FROM genres";  // Таблица genres должна существовать в БД
+        String sql = "SELECT * FROM genres";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs));
     }
 

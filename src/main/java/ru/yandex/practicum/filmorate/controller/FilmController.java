@@ -46,6 +46,24 @@ public class FilmController {
         return FilmMapper.toFilmResponse(film);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable int id) {
+        filmService.deleteFilm(id);
+        log.info("Фильм с id {} удален", id);
+    }
+
+    @GetMapping("/popular")
+    public List<FilmResponse> getPopularFilms(
+            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(required = false) Integer genreId,
+            @RequestParam(required = false) Integer year) {
+
+        List<Film> films = filmService.getMostPopularFilmsByGenreAndYear(count, genreId, year);
+        return films.stream()
+                .map(FilmMapper::toFilmResponse)
+                .collect(Collectors.toList());
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable int id, @PathVariable int userId) {
         filmService.addLike(id, userId);
@@ -58,17 +76,48 @@ public class FilmController {
         log.info("Пользователь {} удалил лайк с фильма {}", userId, id);
     }
 
-    @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return filmService.getPopularFilms(count);
-    }
-
     @PostMapping
     public FilmResponse addFilm(@Valid @RequestBody FilmRequest filmRequest) {
         Film film = FilmMapper.toFilm(filmRequest);
         Film createdFilm = filmService.addFilm(film);
         log.info("Создан фильм: {}", createdFilm);
         return FilmMapper.toFilmResponse(createdFilm);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmResponse> getFilmsByDirector(
+            @PathVariable int directorId,
+            @RequestParam(defaultValue = "likes") String sortBy) {
+
+        log.info("Получение фильмов режиссера {} с сортировкой по {}", directorId, sortBy);
+
+        List<Film> films = filmService.getFilmsByDirector(directorId, sortBy);
+
+        return films.stream()
+                .map(FilmMapper::toFilmResponse)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/search")
+    public List<FilmResponse> searchFilms(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "title,director") List<String> by) {
+
+        List<Film> films = filmService.searchFilms(query, by);
+
+        return films.stream()
+                .map(FilmMapper::toFilmResponse)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/common")
+    public List<FilmResponse> getCommonFilms(@RequestParam("userId") int userId, @RequestParam("friendId") int friendId) {
+
+        List<Film> films = filmService.getCommonFilms(userId, friendId);
+
+        return films.stream()
+                .map(FilmMapper::toFilmResponse)
+                .collect(Collectors.toList());
     }
 }
 

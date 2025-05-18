@@ -2,10 +2,10 @@ package ru.yandex.practicum.filmorate.DTO;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class FilmRequest {
     private String description;
 
     @NotNull(message = "Дата релиза обязательна")
-    @PastOrPresent(message = "Дата релиза не может быть в будущем")
+    //@PastOrPresent(message = "Дата релиза не может быть в будущем")
     private LocalDate releaseDate;
 
     @Positive(message = "Продолжительность фильма должна быть положительной")
@@ -30,4 +30,6 @@ public class FilmRequest {
     private MpaDTO mpa;
 
     private List<GenreDTO> genres;
+
+    private List<DirectorDto> directors;
 }

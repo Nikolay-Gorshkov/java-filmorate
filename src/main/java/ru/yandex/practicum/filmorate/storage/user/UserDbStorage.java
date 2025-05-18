@@ -6,6 +6,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.*;
@@ -35,16 +36,22 @@ public class UserDbStorage implements UserStorage {
     public User createUser(User user) {
         String sql = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        String name = (user.getName() == null || user.getName().isBlank())
+                ? user.getLogin()
+                : user.getName();
+
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getEmail());
             ps.setString(2, user.getLogin());
-            // Если имя не задано, используем логин
-            ps.setString(3, (user.getName() == null || user.getName().isBlank()) ? user.getLogin() : user.getName());
+            ps.setString(3, name); // Используем переменную name
             ps.setDate(4, Date.valueOf(user.getBirthday()));
             return ps;
         }, keyHolder);
+
         user.setId(keyHolder.getKey().intValue());
+        user.setName(name); // Обновляем поле name
         return user;
     }
 
@@ -52,12 +59,19 @@ public class UserDbStorage implements UserStorage {
     public User updateUser(User user) {
         getUserById(user.getId());
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
+
+        String name = (user.getName() == null || user.getName().isBlank())
+                ? user.getLogin()
+                : user.getName();
+
         jdbcTemplate.update(sql,
                 user.getEmail(),
                 user.getLogin(),
-                (user.getName() == null || user.getName().isBlank()) ? user.getLogin() : user.getName(),
+                name,
                 Date.valueOf(user.getBirthday()),
                 user.getId());
+
+        user.setName(name); // Обновляем поле name
         return user;
     }
 
@@ -69,6 +83,24 @@ public class UserDbStorage implements UserStorage {
             throw new NotFoundException("Пользователь с id " + id + " не найден");
         }
         return users.get(0);
+    }
+
+    @Override
+    public void deleteUser(int userId) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        int rowsAffected = jdbcTemplate.update(sql, userId);
+        if (rowsAffected == 0) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+    }
+
+    @Override
+    public void clearAll() {
+        String sqlDeleteFriendships = "DELETE FROM friendships";
+        String sqlDeleteUsers = "DELETE FROM users";
+
+        jdbcTemplate.update(sqlDeleteFriendships);
+        jdbcTemplate.update(sqlDeleteUsers);
     }
 
     @Override
@@ -94,6 +126,9 @@ public class UserDbStorage implements UserStorage {
             String insertSql = "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, ?)";
             jdbcTemplate.update(insertSql, userId, friendId, "UNCONFIRMED");
         }
+
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, userId, "FRIEND", "ADD", friendId);
     }
 
     @Override
@@ -102,6 +137,8 @@ public class UserDbStorage implements UserStorage {
         getUserById(friendId);
         String sql = "DELETE FROM friendships WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sql, userId, friendId);
+        String insertEventSql = "INSERT INTO user_event (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(insertEventSql, userId, "FRIEND", "REMOVE", friendId);
     }
 
     @Override
@@ -121,6 +158,21 @@ public class UserDbStorage implements UserStorage {
                 "JOIN friendships f1 ON u.id = f1.friend_id AND f1.user_id = ? " +
                 "JOIN friendships f2 ON u.id = f2.friend_id AND f2.user_id = ?";
         return jdbcTemplate.query(sql, this::mapRowToUser, userId, otherId);
+    }
+
+    @Override
+    public List<Event> getFeed(int userId) {
+        String sql = "SELECT * FROM user_event WHERE user_id = ? ORDER BY timestamp ASC, event_id ASC";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Event event = new Event();
+            event.setEventId(rs.getInt("event_id"));
+            event.setUserId(rs.getInt("user_id"));
+            event.setEventType(rs.getString("event_type"));
+            event.setOperation(rs.getString("operation"));
+            event.setEntityId(rs.getInt("entity_id"));
+            event.setTimestamp(rs.getTimestamp("timestamp").getTime());
+            return event;
+        }, userId);
     }
 }
 

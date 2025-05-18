@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.DTO.MpaDTO;
 import ru.yandex.practicum.filmorate.model.MpaaRating;
 import ru.yandex.practicum.filmorate.storage.Mpa.MpaStorage;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
